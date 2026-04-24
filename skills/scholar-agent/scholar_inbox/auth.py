@@ -88,7 +88,7 @@ def open_browser_for_login() -> str | None:
         )
     except FileNotFoundError:
         print("Error: playwright-cli not found.", file=sys.stderr)
-        print("Install: npm install -g @anthropic-ai/playwright-cli", file=sys.stderr)
+        print("Install: npm install -g @playwright/cli", file=sys.stderr)
         return None
 
     # Wait for browser to start

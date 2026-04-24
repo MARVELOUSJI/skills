@@ -632,7 +632,7 @@ def _build_doctor_report(online: bool = False) -> dict:
                 "warn",
                 "playwright-cli",
                 "Not found",
-                "Install with: npm install -g @anthropic-ai/playwright-cli",
+                "Install with: npm install -g @playwright/cli",
             )
         )
 
@@ -1215,7 +1215,7 @@ def cmd_setup(args):
         print(f"  {ok} playwright-cli found")
     else:
         print(f"  {fail} playwright-cli not found")
-        print(f"    Install: npm install -g @anthropic-ai/playwright-cli")
+        print(f"    Install: npm install -g @playwright/cli")
         print(f"    Then:    playwright-cli install chromium")
         all_good = False
 

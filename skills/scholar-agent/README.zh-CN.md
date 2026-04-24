@@ -39,7 +39,7 @@ npx skills add jiahao-shao1/sjh-skills --skill scholar-agent
 pipx install "notebooklm-py[browser]"
 
 # 2. 登录（各服务首次需要）
-npm install -g @anthropic-ai/playwright-cli  # Scholar Inbox 浏览器登录
+npm install -g @playwright/cli  # Scholar Inbox 浏览器登录
 notebooklm login                     # Google 登录 — 打开浏览器
 PYTHONPATH=~/.claude/skills/scholar-agent python3 -m scholar_inbox login --browser  # Scholar Inbox
 ```

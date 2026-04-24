@@ -24,7 +24,7 @@ Two modes:
 
 | Dependency | Purpose | Install |
 |------------|---------|---------|
-| `playwright-cli` | Scholar Inbox browser login | `npm install -g @anthropic-ai/playwright-cli` |
+| `playwright-cli` | Scholar Inbox browser login | `npm install -g @playwright/cli` |
 | [notebooklm-py](https://github.com/teng-lin/notebooklm-py) | NotebookLM API (notebooks, sources, chat) | `pipx install "notebooklm-py[browser]"` |
 
 - **Basic Mode** only requires `playwright-cli` (for Scholar Inbox login)
@@ -55,7 +55,7 @@ Checks: Python → playwright-cli → Scholar Inbox login → notebooklm CLI
 Manual install steps:
 ```bash
 # 1. Scholar Inbox browser login (required)
-npm install -g @anthropic-ai/playwright-cli
+npm install -g @playwright/cli
 
 # 2. NotebookLM API (required for Enhanced Mode)
 pipx install "notebooklm-py[browser]"
