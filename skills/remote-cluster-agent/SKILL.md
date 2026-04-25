@@ -16,9 +16,32 @@ Local control plane for remote GPU clusters: a Go daemon + `rca` CLI. All comman
 3. **Check node connectivity**: run `rca nodes`.
    - If the target node is dead → `rca connect <node>`. Still dead → re-establish whatever SSH tunneling / VPN / jump host you depend on, then retry.
    - Second round still dead → read `rca daemon logs -f` for error detail.
-4. Run the user's command.
+4. **Project init check** (only when the user's request involves **project-level development** — modifying code, running Python / pytest / training, executing scripts in the cwd. Skip for pure cluster queries like `rca nodes` / `nvidia-smi` / "看下哪个节点空"). See "Project init flow" below for the full procedure.
+5. Run the user's command (following the project rule if one exists at `<cwd>/.claude/rules/remote-cluster-agent.md`).
 
 **Don't write raw `ssh` commands**, always use `rca exec` / `rca batch`.
+
+### Project init flow
+
+When the user's request involves project-level development in the current working directory:
+
+1. Check `<cwd>/.claude/rules/remote-cluster-agent.md` with the `Read` tool.
+2. **If it exists** → continue. Claude Code auto-loaded it; the rules are already in your context.
+3. **If it does not exist** → **pause the user's original request** and tell them: "这个项目还没初始化 remote-cluster-agent 的 rule，先回答几个问题再继续。" Then use `AskUserQuestion` to ask:
+   1. **Which node?** — read `~/.config/rca/config.toml` first to list configured nodes as options.
+   2. **Remote project directory** (absolute path) — default suggestion: `<node.dir>/<cwd-basename>` if the chosen node has `dir` set, otherwise `~/<cwd-basename>`.
+   3. **Conda env name on remote** (e.g. `myproject`).
+   4. **Mutagen sync session name** — default suggestion: cwd basename. Tell the user `mutagen sync list` shows existing sessions if they're unsure.
+   5. **Conda init script path on remote** — only ask if the user pushes back; default `~/miniconda3/etc/profile.d/conda.sh` covers most setups.
+4. After the user answers, write the project rule file:
+   - `Read` `<skill_dir>/templates/project-rule.md.tmpl`
+   - Substitute `{{NODE}}`, `{{REMOTE_DIR}}`, `{{MUTAGEN_SESSION}}`, `{{CONDA_ENV}}`, `{{CONDA_SH}}` with the user's answers
+   - `Write` to `<cwd>/.claude/rules/remote-cluster-agent.md` (create directories as needed)
+5. Update `<cwd>/CLAUDE.md`:
+   - If it doesn't exist → create it with the single line `@.claude/rules/remote-cluster-agent.md`
+   - If it exists and doesn't contain that line → append it (with a leading blank line if the file doesn't end with one)
+   - If it exists and already contains that line → leave it untouched (idempotent)
+6. Briefly confirm to the user that init completed (one sentence, list the 4 values you wrote), then **proceed with the original request** — and from this point on follow the rules in the file you just wrote (flush before exec, conda activate for python, local-edit-remote-exec).
 
 ### First-time install (auto, no user action needed beyond SSH info)
 
@@ -52,6 +75,8 @@ rca daemon status         # confirm running
 rca nodes                 # confirm nodes connected
 rca agent check           # if agent missing → rca agent deploy
 ```
+
+> **Project-level rule** (per project, not global): the first time the user uses this skill in a new project directory for actual development, follow the **Project init flow** above to drop a rule file into `<cwd>/.claude/rules/remote-cluster-agent.md`. That file records the project's node, conda env, mutagen session, and remote dir, and is auto-loaded by Claude Code in future sessions in that project. Don't run this for every cwd — only when you're about to run / test / develop project code remotely.
 
 ## Common operations
 
@@ -106,6 +131,19 @@ rca exec -s -n train "tail -f /var/log/train.log"
 rca exec -s -n train "python train.py"
 ```
 
+### Mutagen sync flush
+
+`mutagen sync flush` blocks until the local mutagen daemon has propagated all pending changes for that session — use it to close the race between local edits and remote execution (and the reverse).
+
+```bash
+mutagen sync flush <session-name>     # flush one session, block until done
+mutagen sync flush --all              # flush every session
+```
+
+Cost: ~50-100ms when nothing is pending; ~200-500ms after a small file change. Don't flush before pure query commands (`nvidia-smi`, `ps`, `df`, `rca nodes`) — there's no race to close.
+
+If `flush` errors with "session is paused" / "halted" / "in conflict", the underlying sync is broken — fix the session (`mutagen sync resume <name>`, or see `reference/mutagen-troubleshooting.md`) before retrying.
+
 ### Cluster health inspection
 
 Triggered when the user says "cluster status", "which node is free", "cluster health", "GPU usage". Use `rca batch` for parallel sampling:
@@ -129,8 +167,23 @@ If mutagen real-time sync is configured, the cluster's `outputs/` appears locall
 - Want to **read file content** (logs, JSON, CSV, config files) → `Read("outputs/...")` locally
 - Want to **run an operation** (ps, nvidia-smi, start/stop, pip install) → `rca exec`
 - Unsure if the file is synced locally → `ls outputs/` or `Glob("outputs/**/<pattern>")` first
+- **Just edited a file locally and about to `rca exec` something that reads it** → `mutagen sync flush <session>` first (see "Sync timing" below)
+- **Just ran `rca exec` that wrote to `outputs/` and about to `Read` it** → `mutagen sync flush <session>` first
 
 Typical mistake: `rca exec -n train "cat /home/user/outputs/.../log.txt"` to read a log. That file is already synced — just `Read` it.
+
+## Sync timing (avoid stale reads / stale exec)
+
+Mutagen syncs in near-real-time, but it is **not synchronous**. There's a small window (sub-second to a few seconds) between a file change and that change being visible across the boundary. This produces two race conditions:
+
+- **Local edit → remote exec**: you `Edit` a `.py`, then immediately `rca exec` the same script. If mutagen hasn't propagated yet, the cluster runs the **old** version.
+- **Remote exec → local read**: `rca exec` writes to `outputs/log.txt`. If you immediately `Read("outputs/log.txt")` locally, mutagen may not have synced it back — you read **stale content**.
+
+**Fix**: `mutagen sync flush <session>` blocks until the session is fully propagated, then returns. Use it before crossing the boundary in either direction.
+
+Once a project is initialized via the project init flow, the project rule file at `<cwd>/.claude/rules/remote-cluster-agent.md` records the session name and reminds Claude of this rule on every session. Without an initialized project, follow the same rule manually using whatever session name `mutagen sync list` shows.
+
+**Exempt** (no flush needed): pure queries that don't touch files you just changed — `nvidia-smi`, `ps`, `df`, `uptime`, `tmux ls`, `conda env list`, `rca nodes`.
 
 ## SSH connection failures
 

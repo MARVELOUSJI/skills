@@ -1,10 +1,20 @@
 # Remote Cluster Agent
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue)
+![Version](https://img.shields.io/badge/version-0.5.0-blue)
 
 English | [中文](README.zh-CN.md)
 
 > A skill for Claude Code / Codex to operate GPU clusters — edit code locally, run commands remotely with ~0.1s latency via a local Go daemon + persistent SSH agent connections.
+
+## What's New in v0.5.0
+
+**Project-level rule + sync race fix**
+
+- **New: project init flow** — first time you use the skill in a new project for actual development, the agent prompts for 4 values (node, remote dir, conda env, mutagen session), writes `<project>/.claude/rules/remote-cluster-agent.md`, and references it from `<project>/CLAUDE.md`. Future sessions in that project auto-load the rule.
+- **Mutagen sync race documented and prevented** — `MUTAGEN.md` now warns that sync is *near* real-time, not synchronous. Added `mutagen sync flush <session>` as the standard fix to use before remote exec / local read crossings. Project rule file enforces this in every session.
+- **Conda env recorded per project** — the project rule file pins the remote conda env, so all `python` / `pytest` runs through `rca exec` activate the right environment instead of falling back to the system interpreter.
+
+No breaking changes. Existing v0.4.x projects keep working; the project init flow only triggers when there's no rule file yet.
 
 ## Install
 
@@ -74,11 +84,12 @@ Local Machine                            GPU Cluster (no internet needed)
 ### The automation loop
 
 ```
-Edit code (local) → Mutagen syncs instantly → Run experiment (remote) → Logs sync back → Read results (local) → repeat
+Edit code (local) → Mutagen syncs (sub-second) → mutagen sync flush → Run experiment (remote) → Logs sync back → flush → Read results (local) → repeat
 ```
 
 - **Code editing**: local native tools (~0.5ms)
-- **Code sync**: [Mutagen](https://mutagen.io) real-time one-way-replica sync over SSH (see [MUTAGEN.md](MUTAGEN.md))
+- **Code sync**: [Mutagen](https://mutagen.io) near real-time one-way-replica sync over SSH (see [MUTAGEN.md](MUTAGEN.md))
+- **Sync flush**: `mutagen sync flush <session>` closes the propagation race before remote exec or local read (see [MUTAGEN.md → Sync Timing](MUTAGEN.md#sync-timing--race-conditions))
 - **Remote execution**: `rca exec` / `rca batch` — routed through a single local daemon
 - **Reading results**: local `Read` tool (~20x faster than reading through remote exec)
 
@@ -175,7 +186,7 @@ remote-cluster-agent/
 ├── README.md                         # This file
 ├── README.zh-CN.md                   # Chinese version
 ├── MUTAGEN.md                        # Mutagen sync guide
-├── VERSION                           # 0.4.0
+├── VERSION                           # 0.5.0
 ├── Makefile                          # build / install / test
 ├── go.mod / go.sum                   # Go dependencies
 ├── cmd/rca/                          # CLI entry point + subcommands
@@ -190,6 +201,8 @@ remote-cluster-agent/
 ├── cluster-agent/
 │   └── agent.py                      # Cluster-side agent (zero deps, v2.1.0)
 ├── mutagen-setup.sh                  # Mutagen file sync setup
+├── templates/
+│   └── project-rule.md.tmpl          # Per-project rule template (v0.5.0)
 ├── reference/
 │   ├── cluster-health.md             # Health check procedure
 │   └── mutagen-troubleshooting.md    # Mutagen recovery playbook

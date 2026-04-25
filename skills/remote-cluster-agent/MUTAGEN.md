@@ -1,12 +1,14 @@
 # Mutagen File Sync
 
-Real-time file sync between your local machine and remote GPU cluster, using [Mutagen](https://mutagen.io). Works entirely over SSH — no public internet required on the cluster.
+Near real-time file sync between your local machine and remote GPU cluster, using [Mutagen](https://mutagen.io). Works entirely over SSH — no public internet required on the cluster.
 
 **Recommended mode**: `one-way-replica` (unidirectional sync). Use local→cluster for code, cluster→local for outputs. Alpha is the sole source of truth — Beta is fully overwritten, never conflicts. The older `one-way-safe` mode can produce conflicts when Beta has independent modifications, causing Mutagen to stall.
 
 ## Why Mutagen?
 
-Without Mutagen, you need to manually sync code for every change. Mutagen provides **real-time file sync** — save a file locally and it appears on the cluster within seconds. No commits, no push/pull.
+Without Mutagen, you need to manually sync code for every change. Mutagen provides **near real-time file sync** — save a file locally and it appears on the cluster within sub-second to a few seconds. No commits, no push/pull.
+
+> ⚠️ **Sync is fast but not synchronous.** A file edit propagates *quickly*, not *atomically*. If you edit and immediately execute the same code on the cluster, the cluster may still see the old version. See [Sync Timing & Race Conditions](#sync-timing--race-conditions) below for the standard fix (`mutagen sync flush`).
 
 ## The Challenge
 
@@ -112,17 +114,53 @@ Mutagen works entirely over SSH. As long as your local machine can SSH into the 
 
 ### Coexistence with git sync
 
-Mutagen and git sync can coexist. Mutagen handles real-time file sync for rapid iteration, while git remains the source of truth for versioning and collaboration. A typical workflow:
+Mutagen and git sync can coexist. Mutagen handles near real-time file sync for rapid iteration, while git remains the source of truth for versioning and collaboration. A typical workflow:
 
-1. **Develop**: Edit locally, Mutagen syncs to cluster instantly
-2. **Train**: Run training via `remote_bash`
+1. **Develop**: Edit locally, Mutagen syncs to cluster (sub-second to a few seconds)
+2. **Flush before exec**: `mutagen sync flush <session>` to close the propagation race, then run training via `rca exec`
 3. **Commit**: When ready, `git add && git commit && git push` as usual
+
+## Sync Timing & Race Conditions
+
+Mutagen syncs in **near real-time, not synchronously**. There is a small delay (sub-second for a small edit, a few seconds for many files or large files) between a change happening on one side and being visible on the other. This produces two race conditions in agent-driven workflows:
+
+| Race | What happens | Symptom |
+|------|--------------|---------|
+| **Local edit → remote exec** | Edit `train.py` locally, immediately `rca exec "python train.py"` | Cluster runs the **old** version of `train.py` |
+| **Remote exec → local read** | `rca exec` writes `outputs/log.txt`, immediately `Read("outputs/log.txt")` locally | Local `Read` returns **stale** content |
+
+### The fix: `mutagen sync flush`
+
+`mutagen sync flush` blocks until the local mutagen daemon has fully propagated all pending changes for the session.
+
+```bash
+mutagen sync flush <session_name>     # block until this session is fully synced
+mutagen sync flush --all              # flush every session
+```
+
+**Cost**:
+- Nothing pending: ~50-100ms (basically a no-op status check)
+- Small file change just propagated: ~200-500ms
+- Many files / large files: a few seconds
+
+**When to call it**:
+- After `Edit` / `Write` on a file the cluster is about to read or execute → flush, *then* `rca exec`
+- After `rca exec` that wrote to a path you're about to `Read` locally → flush, *then* `Read`
+
+**When to skip it**:
+- Pure query commands that don't touch files you just changed: `nvidia-smi`, `ps`, `df`, `uptime`, `tmux ls`, `conda env list`, `rca nodes`
+
+**Errors**: if `flush` reports the session is paused / halted / in conflict, fix the underlying session (see [Troubleshooting](#troubleshooting) and `reference/mutagen-troubleshooting.md`) before retrying — the flush itself is fine, the sync is broken.
 
 ## Managing Sync Sessions
 
 ```bash
 # Check status
 mutagen sync list
+
+# Wait for pending changes to fully propagate (close the sync race)
+mutagen sync flush <session_name>
+mutagen sync flush --all
 
 # Watch sync in real-time
 mutagen sync monitor <session_name>

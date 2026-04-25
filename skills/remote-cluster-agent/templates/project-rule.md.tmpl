@@ -1,0 +1,67 @@
+# remote-cluster-agent: Project Rule
+
+This project uses the `remote-cluster-agent` skill for development on a remote GPU cluster. Claude Code auto-loads this file when sessions start in this project — these rules apply to **all** sessions here.
+
+## 1. Sync before remote exec (both directions)
+
+Mutagen syncs in near-real-time but is **not synchronous**. Two race conditions to avoid:
+
+- **Local edit → remote exec**: file change may not have reached the cluster yet → `rca exec` runs **stale code**.
+- **Remote exec → local read**: output file may not have synced back yet → `Read("outputs/...")` returns **stale content**.
+
+**Fix**: flush before crossing the boundary.
+
+```bash
+# Before any rca exec that runs code you just edited:
+mutagen sync flush {{MUTAGEN_SESSION}}
+rca exec -n {{NODE}} "..."
+
+# After rca exec writes to outputs/, before reading locally:
+mutagen sync flush {{MUTAGEN_SESSION}}
+# now Read("outputs/...") is safe
+```
+
+`mutagen sync flush` blocks until the session is fully propagated. Cost: ~50-100ms when nothing pending, ~200-500ms after a small edit.
+
+**Exempt** (no flush needed) — pure queries that don't touch files you just changed:
+`nvidia-smi`, `ps`, `df`, `uptime`, `tmux ls`, `conda env list`, `rca nodes`.
+
+## 2. Local edit / remote execute — never run user code locally
+
+| Operation | Where |
+|-----------|-------|
+| `Read` / `Edit` / `Write` / `Glob` / `Grep` | **Local** (mutagen mirrors to remote) |
+| `python ...`, `pytest`, `pip install`, training, scripts | **Remote** (`rca exec -n {{NODE}}`) |
+| Inspect synced output files | **Local** `Read("outputs/...")` (faster than SSH cat) |
+| `nvidia-smi`, `ps`, status checks | **Remote** (`rca exec` or `rca batch`) |
+
+The local machine does **not** have this project's runtime deps. Never run `python` / `pytest` / `pip` locally in this project.
+
+## 3. Python on remote always uses conda env `{{CONDA_ENV}}`
+
+Every `rca exec` Python invocation must activate `{{CONDA_ENV}}`. Recommended forms:
+
+```bash
+# For long jobs / tests with live output (use -s to stream):
+rca exec -s -n {{NODE}} --stdin <<'EOF'
+source {{CONDA_SH}}
+conda activate {{CONDA_ENV}}
+cd {{REMOTE_DIR}}
+python <your-command>
+EOF
+
+# One-liner for short commands (no streaming):
+rca exec -n {{NODE}} -d {{REMOTE_DIR}} "conda run -n {{CONDA_ENV}} python <your-command>"
+```
+
+Without activation: `python` on remote uses the system interpreter and **will not find this project's deps** (ModuleNotFoundError).
+
+## Project info (recorded at init)
+
+- Node: `{{NODE}}`
+- Remote project dir: `{{REMOTE_DIR}}`
+- Mutagen sync session: `{{MUTAGEN_SESSION}}`
+- Conda env (on remote): `{{CONDA_ENV}}`
+- Conda init script (on remote): `{{CONDA_SH}}`
+
+To regenerate this file, delete it and trigger the skill again — it will re-prompt.

@@ -1,10 +1,20 @@
 # Remote Cluster Agent
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue)
+![Version](https://img.shields.io/badge/version-0.5.0-blue)
 
 [English](README.md) | 中文
 
 > 让 Coding Agent 在无公网的 GPU 集群上自动迭代。本地读写，远程执行，~0.1s 延迟。本地用 Go daemon + `rca` CLI，集群端 Python agent.py。
+
+## v0.5.0 新特性
+
+**项目级 rule + 同步竞态修复**
+
+- **新增：项目初始化流程** —— 当 agent 第一次在某个新项目里使用 skill 做开发时，会主动问 4 个值（节点、远程目录、conda 环境名、mutagen session 名），生成 `<project>/.claude/rules/remote-cluster-agent.md` 并在 `<project>/CLAUDE.md` 里 `@import` 引用。该项目此后所有会话自动加载这条 rule。
+- **同步竞态文档化并修复** —— `MUTAGEN.md` 新增警告：mutagen 是*近实时*但*非同步*。增加 `mutagen sync flush <session>` 作为标准解法，避免本地编辑→远程执行 / 远程写→本地读两个方向的旧数据问题。项目 rule 文件强制每个会话遵守此规则。
+- **每个项目记录 conda 环境** —— rule 文件固化项目所用 conda env，所有 `rca exec` 跑 Python / pytest 都会先 `conda activate`，避免回退到系统解释器找不到依赖。
+
+无 breaking change，v0.4.x 项目继续可用；项目初始化流程仅在首次缺 rule 文件时触发。
 
 ## 安装
 
@@ -74,11 +84,12 @@ make install
 ### 自动化循环
 
 ```
-修改代码（本地） → Mutagen 即时同步 → 跑实验（远程） → 日志同步回来 → 读结果（本地） → 循环
+修改代码（本地） → Mutagen 同步（亚秒级） → mutagen sync flush → 跑实验（远程） → 日志同步回来 → flush → 读结果（本地） → 循环
 ```
 
 - **代码编辑**：本地原生工具（~0.5ms）
-- **代码同步**：[Mutagen](https://mutagen.io) 实时 one-way-replica SSH 同步（见 [MUTAGEN.md](MUTAGEN.md)）
+- **代码同步**：[Mutagen](https://mutagen.io) 近实时 one-way-replica SSH 同步（见 [MUTAGEN.md](MUTAGEN.md)）
+- **同步 flush**：`mutagen sync flush <session>` 在跨边界（远程执行 / 本地读）前关闭传播竞态（见 [MUTAGEN.md → Sync Timing](MUTAGEN.md#sync-timing--race-conditions)）
 - **远程执行**：`rca exec` / `rca batch` —— 通过本地 daemon 路由
 - **读取结果**：本地 `Read` 工具（比远程 exec 快 ~20x）
 
@@ -175,7 +186,7 @@ remote-cluster-agent/
 ├── README.md                         # 英文说明
 ├── README.zh-CN.md                   # 本文件
 ├── MUTAGEN.md                        # Mutagen 同步指南
-├── VERSION                           # 0.4.0
+├── VERSION                           # 0.5.0
 ├── Makefile                          # 编译 / 安装 / 测试
 ├── go.mod / go.sum                   # Go 依赖
 ├── cmd/rca/                          # CLI 入口 + 子命令
@@ -190,6 +201,8 @@ remote-cluster-agent/
 ├── cluster-agent/
 │   └── agent.py                      # 集群端 agent（零依赖，v2.1.0）
 ├── mutagen-setup.sh                  # Mutagen 同步配置
+├── templates/
+│   └── project-rule.md.tmpl          # 项目级 rule 模板（v0.5.0 新增）
 ├── reference/
 │   ├── cluster-health.md             # 巡检流程
 │   └── mutagen-troubleshooting.md    # Mutagen 排障手册
