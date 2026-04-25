@@ -40,6 +40,8 @@ type NodeConfig struct {
 	SSH       string `toml:"ssh"`
 	Dir       string `toml:"dir"`
 	AgentPath string `toml:"agent_path"`
+	CondaSh   string `toml:"conda_sh"`  // path to conda init script on this node, e.g. ~/miniconda3/etc/profile.d/conda.sh
+	CondaEnv  string `toml:"conda_env"` // node-level default conda env name (project may override)
 }
 
 // EffectiveAgentPath returns the node-level agent_path if set, otherwise the global one.
@@ -58,9 +60,19 @@ func (nc NodeConfig) EffectiveDir(global string) string {
 	return global
 }
 
+// EffectiveCondaEnv returns projectEnv if non-empty, else this node's CondaEnv.
+func (nc NodeConfig) EffectiveCondaEnv(projectEnv string) string {
+	if projectEnv != "" {
+		return projectEnv
+	}
+	return nc.CondaEnv
+}
+
 type ProjectConf struct {
-	Dir         string `toml:"dir"`
-	DefaultNode string `toml:"default_node"`
+	Dir            string `toml:"dir"`
+	DefaultNode    string `toml:"default_node"`
+	CondaEnv       string `toml:"conda_env"`       // project conda env on remote (overrides node-level default)
+	MutagenSession string `toml:"mutagen_session"` // mutagen sync session name for this project
 }
 
 func DefaultPath() string {

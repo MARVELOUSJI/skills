@@ -23,25 +23,52 @@ Local control plane for remote GPU clusters: a Go daemon + `rca` CLI. All comman
 
 ### Project init flow
 
+**Source of truth**: per-project values (node, dir, conda env, conda init script, mutagen session) live in `~/.config/rca/config.toml` under `[projects.<key>]` and `[nodes.<name>]`. The project rule file at `<cwd>/.claude/rules/remote-cluster-agent.md` is thin — it only encodes the **behavioral rules** and points at the config for actual values.
+
 When the user's request involves project-level development in the current working directory:
 
 1. Check `<cwd>/.claude/rules/remote-cluster-agent.md` with the `Read` tool.
-2. **If it exists** → continue. Claude Code auto-loaded it; the rules are already in your context.
-3. **If it does not exist** → **pause the user's original request** and tell them: "这个项目还没初始化 remote-cluster-agent 的 rule，先回答几个问题再继续。" Then use `AskUserQuestion` to ask:
-   1. **Which node?** — read `~/.config/rca/config.toml` first to list configured nodes as options.
-   2. **Remote project directory** (absolute path) — default suggestion: `<node.dir>/<cwd-basename>` if the chosen node has `dir` set, otherwise `~/<cwd-basename>`.
+2. **If it exists** → read the project key from it, then `Read ~/.config/rca/config.toml` to resolve concrete values, and continue with the user's request following the three rules.
+3. **If it does not exist** → **pause the user's original request** and tell them: "这个项目还没初始化 remote-cluster-agent 配置，先回答几个问题再继续。" Then:
+
+   **(a) Read existing config.** Open `~/.config/rca/config.toml` to list configured nodes (so you can offer them as options) and to know the chosen node's `dir` / `conda_sh` defaults.
+
+   **(b) Ask via `AskUserQuestion`** (one batch of 4 questions):
+   1. **Which node?** — options are the keys under `[nodes.*]` from config.toml.
+   2. **Remote project directory** (absolute path) — default suggestion: `<chosen-node.dir>/<cwd-basename>` if node has `dir`, else `~/<cwd-basename>`.
    3. **Conda env name on remote** (e.g. `myproject`).
    4. **Mutagen sync session name** — default suggestion: cwd basename. Tell the user `mutagen sync list` shows existing sessions if they're unsure.
-   5. **Conda init script path on remote** — only ask if the user pushes back; default `~/miniconda3/etc/profile.d/conda.sh` covers most setups.
-4. After the user answers, write the project rule file:
-   - `Read` `<skill_dir>/templates/project-rule.md.tmpl`
-   - Substitute `{{NODE}}`, `{{REMOTE_DIR}}`, `{{MUTAGEN_SESSION}}`, `{{CONDA_ENV}}`, `{{CONDA_SH}}` with the user's answers
-   - `Write` to `<cwd>/.claude/rules/remote-cluster-agent.md` (create directories as needed)
-5. Update `<cwd>/CLAUDE.md`:
-   - If it doesn't exist → create it with the single line `@.claude/rules/remote-cluster-agent.md`
-   - If it exists and doesn't contain that line → append it (with a leading blank line if the file doesn't end with one)
-   - If it exists and already contains that line → leave it untouched (idempotent)
-6. Briefly confirm to the user that init completed (one sentence, list the 4 values you wrote), then **proceed with the original request** — and from this point on follow the rules in the file you just wrote (flush before exec, conda activate for python, local-edit-remote-exec).
+
+   Only ask about `conda_sh` (init script path on the remote) if the chosen node doesn't already have one set in config.toml — then default `~/miniconda3/etc/profile.d/conda.sh` covers most setups; ask the user to confirm or override.
+
+   **(c) Update `~/.config/rca/config.toml`** (use `Edit` tool to surgically modify, don't rewrite the whole file):
+   - Append a new `[projects.<cwd-basename>]` block with `default_node`, `dir`, `conda_env`, `mutagen_session` filled from the answers.
+   - If the chosen node's `conda_sh` is empty in config.toml, fill it in `[nodes.<chosen-node>]` (so it doubles as the default for any future projects on the same node).
+   - Verify by `Read`-ing the file again and confirming the new entries are correctly placed (no stray syntax).
+
+   **(d) Write the thin project rule file:**
+   - `Read` `<skill_dir>/templates/project-rule.md.tmpl`.
+   - Substitute the **only** placeholder `{{PROJECT_KEY}}` with the cwd basename. (Do **not** embed concrete node/dir/env/session values into this file — those live in config.toml.)
+   - `Write` to `<cwd>/.claude/rules/remote-cluster-agent.md` (create `.claude/rules/` if needed).
+
+   **(e) Update `<cwd>/CLAUDE.md`:**
+   - If it doesn't exist → create it with the single line `@.claude/rules/remote-cluster-agent.md`.
+   - If it exists and doesn't contain that line → append it (with a leading blank line if the file doesn't end with one).
+   - If it already contains that line → leave it untouched (idempotent).
+
+   **(f) Confirm and continue.** One-sentence summary to the user listing the 4 values you wrote (e.g. "已在 config.toml 加 `[projects.my-proj]`：node=train, dir=/home/user/my-proj, conda_env=my-env, mutagen_session=my-proj"). Then resume the original request, applying the three rules using values you just wrote.
+
+**Fields and where they resolve from** (resolution order: project → node → global):
+
+| Field | Where to read |
+|-------|---------------|
+| `default_node` | `[projects.<key>].default_node` |
+| `dir` (remote project dir) | `[projects.<key>].dir` → `[nodes.<node>].dir` → `default_dir` |
+| `conda_env` | `[projects.<key>].conda_env` → `[nodes.<node>].conda_env` |
+| `conda_sh` | `[nodes.<node>].conda_sh` (no project-level override) |
+| `mutagen_session` | `[projects.<key>].mutagen_session` |
+
+If a field is empty across all levels, ask the user before guessing.
 
 ### First-time install (auto, no user action needed beyond SSH info)
 

@@ -67,3 +67,72 @@ func TestDefaultPath(t *testing.T) {
 		t.Errorf("DefaultPath=%q, want %q", p, want)
 	}
 }
+
+func TestCondaAndProjectFields(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	os.WriteFile(path, []byte(`
+default_node = "train"
+
+[nodes.train]
+ssh = "ssh gpu-train"
+dir = "/home/user"
+conda_sh = "~/miniconda3/etc/profile.d/conda.sh"
+conda_env = "default-env"
+
+[nodes.eval]
+ssh = "ssh gpu-eval"
+
+[projects.my-proj]
+default_node = "train"
+dir = "/home/user/my-proj"
+conda_env = "my-proj-env"
+mutagen_session = "my-proj"
+
+[projects.no-conda-override]
+default_node = "train"
+dir = "/home/user/no-conda-override"
+mutagen_session = "no-conda-override"
+`), 0644)
+
+	c, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	train := c.Nodes["train"]
+	if train.CondaSh != "~/miniconda3/etc/profile.d/conda.sh" {
+		t.Errorf("nodes.train.conda_sh=%q", train.CondaSh)
+	}
+	if train.CondaEnv != "default-env" {
+		t.Errorf("nodes.train.conda_env=%q", train.CondaEnv)
+	}
+
+	myProj := c.Projects["my-proj"]
+	if myProj.DefaultNode != "train" {
+		t.Errorf("projects.my-proj.default_node=%q", myProj.DefaultNode)
+	}
+	if myProj.CondaEnv != "my-proj-env" {
+		t.Errorf("projects.my-proj.conda_env=%q", myProj.CondaEnv)
+	}
+	if myProj.MutagenSession != "my-proj" {
+		t.Errorf("projects.my-proj.mutagen_session=%q", myProj.MutagenSession)
+	}
+
+	// Project override wins.
+	if got := train.EffectiveCondaEnv(myProj.CondaEnv); got != "my-proj-env" {
+		t.Errorf("EffectiveCondaEnv with project override=%q, want my-proj-env", got)
+	}
+
+	// No project override → fall back to node-level.
+	noOverride := c.Projects["no-conda-override"]
+	if got := train.EffectiveCondaEnv(noOverride.CondaEnv); got != "default-env" {
+		t.Errorf("EffectiveCondaEnv without project override=%q, want default-env", got)
+	}
+
+	// Node with neither set → empty.
+	eval := c.Nodes["eval"]
+	if got := eval.EffectiveCondaEnv(""); got != "" {
+		t.Errorf("EffectiveCondaEnv with no values=%q, want empty", got)
+	}
+}
