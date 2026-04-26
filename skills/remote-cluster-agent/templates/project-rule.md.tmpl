@@ -4,7 +4,7 @@ This project uses the `remote-cluster-agent` skill for development on a remote G
 
 **Project key**: `{{PROJECT_KEY}}`
 
-All concrete values (which node, remote dir, conda env, conda init script, mutagen session name) live in `~/.config/rca/config.toml` under `[projects.{{PROJECT_KEY}}]` and `[nodes.<default_node>]` — **not in this file**. Look them up at the start of each session, then apply the three rules below using those values.
+All concrete values (which node, remote dir, conda env, conda init script, mutagen session name, ignores) live in `~/.config/rca/config.toml` under `[projects.{{PROJECT_KEY}}]` and `[nodes.<default_node>]` — **not in this file**. Look them up at the start of each session, then apply the rules below using those values.
 
 ```bash
 # Quick lookup (run once per session, cache the values):
@@ -21,37 +21,31 @@ If a needed field is empty in all three, ask the user before guessing.
 
 ---
 
-## Rule 1. Sync before remote exec (both directions)
+## Rule 1. Flush local→remote before remote exec
 
-Mutagen syncs in near-real-time but is **not synchronous**. Two race conditions to avoid:
+Mutagen syncs in near-real-time but is **not synchronous**. Local edits take a short window (sub-second to a few seconds) to land on the cluster. If you `rca exec` immediately after `Edit`, the cluster may run **stale code**.
 
-- **Local edit → remote exec**: file change may not have reached the cluster yet → `rca exec` runs **stale code**.
-- **Remote exec → local read**: output file may not have synced back yet → `Read("outputs/...")` returns **stale content**.
-
-**Fix**: flush before crossing the boundary, using the project's mutagen session name.
+**Fix**: flush before any `rca exec` that depends on a file you just edited.
 
 ```bash
-# Before rca exec that runs code you just edited:
 mutagen sync flush <projects.{{PROJECT_KEY}}.mutagen_session>
 rca exec -n <projects.{{PROJECT_KEY}}.default_node> "..."
-
-# Before Read of an output file rca exec just wrote:
-mutagen sync flush <projects.{{PROJECT_KEY}}.mutagen_session>
-# now Read("outputs/...") is safe
 ```
 
-`mutagen sync flush` blocks until the session is fully propagated. Cost: ~50-100ms when nothing pending, ~200-500ms after a small edit.
+`mutagen sync flush` blocks until propagation finishes. Cost: ~50-100ms when nothing pending, ~200-500ms after a small edit.
 
-**Exempt** (no flush needed) — pure queries that don't touch files you just changed:
+**Exempt** (no flush needed) — queries that don't touch files you just changed:
 `nvidia-smi`, `ps`, `df`, `uptime`, `tmux ls`, `conda env list`, `rca nodes`.
+
+> No "remote → local" flush race exists under one-way-replica — see Rule 4. To pull remote-generated files locally, use `rca cp`, not flush.
 
 ## Rule 2. Local edit / remote execute — never run user code locally
 
 | Operation | Where |
 |-----------|-------|
-| `Read` / `Edit` / `Write` / `Glob` / `Grep` | **Local** (mutagen mirrors to remote) |
+| `Read` / `Edit` / `Write` / `Glob` / `Grep` over **synced files** (code, configs, anything local owns) | **Local** (mutagen mirrors to remote) |
 | `python ...`, `pytest`, `pip install`, training, scripts | **Remote** (`rca exec -n <node>`) |
-| Inspect synced output files | **Local** `Read("outputs/...")` (faster than SSH cat) |
+| Read **remote-generated outputs** (training logs, checkpoints in ignored paths) | `rca cp <node>:<path> <local>` then `Read`, **or** `rca exec -n <node> "cat <path>"` for a quick peek (see Rule 4) |
 | `nvidia-smi`, `ps`, status checks | **Remote** (`rca exec` or `rca batch`) |
 
 The local machine does **not** have this project's runtime deps. Never run `python` / `pytest` / `pip` locally in this project.
@@ -74,6 +68,22 @@ rca exec -n <node> -d <remote_dir> "conda run -n <conda_env> python <your-comman
 ```
 
 Without activation: `python` on remote uses the system interpreter and **will not find this project's deps** (ModuleNotFoundError).
+
+## Rule 4. Sync direction is one-way-replica — mind the asymmetry
+
+Mutagen mirrors local → remote only. Never the other way. Three implications the agent must internalize:
+
+1. **Remote outputs do not appear locally automatically.** `Read("outputs/...")` only works for files local has written first. To read a file the cluster generated (logs, checkpoints, training results), use:
+   ```bash
+   rca cp <projects.{{PROJECT_KEY}}.default_node>:<remote-path> <local-path>
+   ```
+   …then `Read` the local copy. For a quick peek without persisting, `rca exec -n <node> "cat <path>"`.
+
+2. **Files written on remote in non-ignored paths get deleted by mutagen.** If a script writes `outputs/result.json` on the cluster and `outputs/` is **not** listed in `[projects.{{PROJECT_KEY}}].ignores`, mutagen will treat that file as "stale" on beta and remove it on the next sync — silently. To preserve remote-generated outputs, the path / glob must be in the project's `ignores`. Check the live ignore list with `mutagen sync list <projects.{{PROJECT_KEY}}.mutagen_session> --long`.
+
+3. **No "remote → local" flush race exists.** `mutagen sync flush` only matters before `rca exec` (see Rule 1). After `rca exec`, there's nothing to flush — remote changes never come home on their own.
+
+If a new path needs to survive on remote, add it to `[projects.{{PROJECT_KEY}}].ignores` in `~/.config/rca/config.toml` and rebuild the session via `bash <skill_dir>/mutagen-setup.sh ... <new-ignore>` (see skill's "Mutagen session health" for the full procedure).
 
 ---
 

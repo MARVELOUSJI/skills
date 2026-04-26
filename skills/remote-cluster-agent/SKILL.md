@@ -33,16 +33,17 @@ When the user's request involves project-level development in the current workin
 
    **(a) Read existing config.** Open `~/.config/rca/config.toml` to list configured nodes (so you can offer them as options) and to know the chosen node's `dir` / `conda_sh` defaults.
 
-   **(b) Ask via `AskUserQuestion`** (one batch of 4 questions):
+   **(b) Ask via `AskUserQuestion`** (one batch of 5 questions):
    1. **Which node?** — options are the keys under `[nodes.*]` from config.toml.
    2. **Remote project directory** (absolute path) — default suggestion: `<chosen-node.dir>/<cwd-basename>` if node has `dir`, else `~/<cwd-basename>`.
    3. **Conda env name on remote** (e.g. `myproject`).
    4. **Mutagen sync session name** — default suggestion: cwd basename. Tell the user `mutagen sync list` shows existing sessions if they're unsure.
+   5. **Project-specific ignore paths/globs** — directories or globs that should NOT be synced and that mutagen should leave alone on both sides (typically: training outputs, logs, large datasets, anything written on remote that you want to preserve there). Default `[]`. Common boilerplate (`__pycache__`, `*.pyc`, `.venv`, `*.pt`, `*.pth`, `*.bin`, `*.safetensors`, `*.ckpt`, `.DS_Store`, `*.egg-info`, `node_modules`) is already baked into `mutagen-setup.sh` — don't ask the user to repeat those. Examples to suggest: `outputs/`, `wandb/`, `checkpoints/`, `*.npz`.
 
    Only ask about `conda_sh` (init script path on the remote) if the chosen node doesn't already have one set in config.toml — then default `~/miniconda3/etc/profile.d/conda.sh` covers most setups; ask the user to confirm or override.
 
    **(c) Update `~/.config/rca/config.toml`** (use `Edit` tool to surgically modify, don't rewrite the whole file):
-   - Append a new `[projects.<cwd-basename>]` block with `default_node`, `dir`, `conda_env`, `mutagen_session` filled from the answers.
+   - Append a new `[projects.<cwd-basename>]` block with `default_node`, `dir`, `conda_env`, `mutagen_session`, `ignores` filled from the answers (write `ignores = []` if the user had nothing).
    - If the chosen node's `conda_sh` is empty in config.toml, fill it in `[nodes.<chosen-node>]` (so it doubles as the default for any future projects on the same node).
    - Verify by `Read`-ing the file again and confirming the new entries are correctly placed (no stray syntax).
 
@@ -56,7 +57,15 @@ When the user's request involves project-level development in the current workin
    - If it exists and doesn't contain that line → append it (with a leading blank line if the file doesn't end with one).
    - If it already contains that line → leave it untouched (idempotent).
 
-   **(f) Confirm and continue.** One-sentence summary to the user listing the 4 values you wrote (e.g. "已在 config.toml 加 `[projects.my-proj]`：node=train, dir=/home/user/my-proj, conda_env=my-env, mutagen_session=my-proj"). Then resume the original request, applying the three rules using values you just wrote.
+   **(f) Create the mutagen session** if one doesn't already exist for this `mutagen_session` name (`mutagen sync list` to check). If missing, run:
+
+   ```bash
+   bash <skill_dir>/mutagen-setup.sh <node-ssh-host> <local_dir> <remote_dir> <session_name> <ignore-1> <ignore-2> ...
+   ```
+
+   The 5th+ positional args are the project's `ignores` from config.toml. The script merges them with the hardcoded boilerplate ignore list (`__pycache__`, `*.pyc`, `.venv`, `*.pt`, etc.) and creates the session in `one-way-replica` mode. **Skip this step if the user explicitly says they've already set up mutagen.**
+
+   **(g) Confirm and continue.** One-sentence summary to the user listing the 5 values you wrote (e.g. "已在 config.toml 加 `[projects.my-proj]`：node=train, dir=/home/user/my-proj, conda_env=my-env, mutagen_session=my-proj, ignores=[outputs/, wandb/]"). Then resume the original request, applying the rules using values you just wrote.
 
 **Fields and where they resolve from** (resolution order: project → node → global):
 
@@ -67,6 +76,7 @@ When the user's request involves project-level development in the current workin
 | `conda_env` | `[projects.<key>].conda_env` → `[nodes.<node>].conda_env` |
 | `conda_sh` | `[nodes.<node>].conda_sh` (no project-level override) |
 | `mutagen_session` | `[projects.<key>].mutagen_session` |
+| `ignores` | `[projects.<key>].ignores` (project-level only; merged with boilerplate hardcoded in `mutagen-setup.sh`) |
 
 If a field is empty across all levels, ask the user before guessing.
 
@@ -184,29 +194,42 @@ rca batch "uptime && tmux ls 2>/dev/null | wc -l"
 
 Summarize into a table and recommend the most idle node. See `reference/cluster-health.md` for detailed probe commands, parse rules, and report format.
 
+## Sync direction (one-way-replica)
+
+Mutagen sync is configured **one-way-replica**: local (alpha) → remote (beta) only. Beta is treated as a strict mirror of alpha. This produces three asymmetries the agent must internalize:
+
+1. **Remote → local does not happen.** A file written / edited / deleted on the cluster does **not** propagate back to local. There is no automatic mechanism that pulls remote changes home.
+2. **Remote-only files in non-ignored paths are deleted.** When mutagen reconciles, anything on beta that isn't on alpha (and isn't covered by the ignore list) is treated as "stale" and removed. So if a training script writes `outputs/result.json` on remote and `outputs/` is not in the project's `ignores`, that file disappears on the next sync — silently.
+3. **Remote-side edits are reverted.** Editing a file on the cluster will be overwritten by mutagen with the local version on the next reconcile. Always `Edit` / `Write` / delete on local; let mutagen mirror.
+
+**To preserve remote-generated files** (training outputs, checkpoints, wandb logs), put their path/glob in `[projects.<key>].ignores`. Mutagen then leaves both sides untouched and the file persists on remote.
+
+**To read remote files locally**:
+- File is written by local first and mirrored to remote (code, configs) → `Read` it locally, no roundtrip.
+- File is generated on remote and lives in an ignored path → `rca cp <node>:<remote-path> <local-path>` to fetch, or `rca exec -n <node> "cat ..."` for a quick peek.
+- File is generated on remote and lives in a non-ignored path → it doesn't exist anymore (mutagen ate it). Move the path into `ignores` or have the script write somewhere ignored.
+
+If unsure whether a path is ignored, check the live ignore list: `mutagen sync list <session> --long`.
+
 ## Reading files vs running commands
 
 `rca exec` is for **executing commands** (starting training, killing processes, checking process state, installing deps) — not reading file contents.
 
-If mutagen real-time sync is configured, the cluster's `outputs/` appears locally automatically. For logs, JSON results, CSV — use the native `Read` tool on the local path. That's ~20x faster than piping through the SSH connection.
-
 **Decision rule**:
-- Want to **read file content** (logs, JSON, CSV, config files) → `Read("outputs/...")` locally
-- Want to **run an operation** (ps, nvidia-smi, start/stop, pip install) → `rca exec`
-- Unsure if the file is synced locally → `ls outputs/` or `Glob("outputs/**/<pattern>")` first
-- **Just edited a file locally and about to `rca exec` something that reads it** → `mutagen sync flush <session>` first (see "Sync timing" below)
-- **Just ran `rca exec` that wrote to `outputs/` and about to `Read` it** → `mutagen sync flush <session>` first
+- Want to **read a file the local writes** (code, configs, anything checked in) → `Read("path/...")` locally. Same content on both sides because local is the source of truth.
+- Want to **read a file the remote writes** (training outputs, logs in ignored paths) → `rca cp <node>:<remote-path> <local-path>` to fetch first, then `Read`. Or `rca exec -n <node> "cat ..."` for a quick view without persisting locally.
+- Want to **run an operation** (ps, nvidia-smi, start/stop training, pip install) → `rca exec`.
+- **Just edited a file locally and about to `rca exec` something that reads it** → `mutagen sync flush <session>` first (see "Sync timing" below) to close the local→remote race.
 
-Typical mistake: `rca exec -n train "cat /home/user/outputs/.../log.txt"` to read a log. That file is already synced — just `Read` it.
+## Sync timing (avoid stale exec)
 
-## Sync timing (avoid stale reads / stale exec)
-
-Mutagen syncs in near-real-time, but it is **not synchronous**. There's a small window (sub-second to a few seconds) between a file change and that change being visible across the boundary. This produces two race conditions:
+Mutagen syncs in near-real-time but is **not synchronous**. There's a small window (sub-second to a few seconds) between a local edit and that change being visible on the cluster.
 
 - **Local edit → remote exec**: you `Edit` a `.py`, then immediately `rca exec` the same script. If mutagen hasn't propagated yet, the cluster runs the **old** version.
-- **Remote exec → local read**: `rca exec` writes to `outputs/log.txt`. If you immediately `Read("outputs/log.txt")` locally, mutagen may not have synced it back — you read **stale content**.
 
-**Fix**: `mutagen sync flush <session>` blocks until the session is fully propagated, then returns. Use it before crossing the boundary in either direction.
+**Fix**: `mutagen sync flush <session>` blocks until the local→remote propagation finishes, then returns. Use it before any `rca exec` that depends on a file you just edited.
+
+Note: there is **no** "remote → local" race to worry about — under one-way-replica, mutagen never propagates remote changes back, so flush has nothing to do in that direction. To pull remote outputs locally, use `rca cp` (see Sync direction above).
 
 Once a project is initialized via the project init flow, the project rule file at `<cwd>/.claude/rules/remote-cluster-agent.md` records the session name and reminds Claude of this rule on every session. Without an initialized project, follow the same rule manually using whatever session name `mutagen sync list` shows.
 
@@ -232,13 +255,14 @@ mutagen sync list 2>/dev/null
 
 For each session:
 1. **Sync mode**: should be `one-way-replica`. If `one-way-safe` or `two-way-resolved`, prompt to rebuild.
-2. **Ignore list**: `.git` should NOT be ignored (v0.4.0+ syncs `.git` to keep cluster-side `git status` clean).
+2. **Ignore list (boilerplate)**: `.git` should NOT be ignored (v0.4.0+ syncs `.git` to keep cluster-side `git status` clean).
+3. **Ignore list (project-specific)**: every entry in `[projects.<key>].ignores` from config.toml must be present in the live session's ignore list. Mismatch → rebuild so remote-generated outputs in those paths don't get deleted.
 
-Rebuild (only after user confirms):
+Rebuild (only after user confirms) — pass project ignores as positional args 5+:
 ```bash
 mutagen sync list <name> --long    # record current params first
 mutagen sync terminate <name>
-bash <skill_dir>/mutagen-setup.sh <ssh_host> <local_dir> <remote_dir> <session_name>
+bash <skill_dir>/mutagen-setup.sh <ssh_host> <local_dir> <remote_dir> <session_name> <ignore-1> <ignore-2> ...
 ```
 
 ### Container restart: mutagen fails to reconnect
