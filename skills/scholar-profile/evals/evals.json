@@ -1,0 +1,26 @@
+{
+  "skill_name": "scholar-profile",
+  "evals": [
+    {
+      "id": 0,
+      "name": "rich-scholar-full-profile",
+      "prompt": "帮我认识一下 Yann LeCun 这个学者：人际关系、研究领域和代表工作、评价三方面都讲讲，画进关系图。",
+      "expected_output": "三段式画像 md（每条结论带来源链接，无源句标〔未找到可靠来源〕，类比标〔类比·主观〕）；graph.json 新增 LeCun 及关系人节点；viewer.html 重生成。",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "second-scholar-auto-connect",
+      "prompt": "再帮我认识一下 Geoffrey Hinton，同样三方面，加进关系图。",
+      "expected_output": "Hinton 三段式画像；graph.json 新增 Hinton 节点，并与已有 LeCun 节点自动连出带来源的 advisor 边（Hinton→LeCun，postdoc）；viewer.html 更新。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "ambiguous-name-disambiguation",
+      "prompt": "帮我认识一下 Jian Sun 这个学者。",
+      "expected_output": "Phase 0 触发：识别出存在多个同名知名学者（如计算机视觉 vs 其他领域），用 AskUserQuestion 列候选让用户确认，而不是直接选一个写报告。",
+      "files": []
+    }
+  ]
+}

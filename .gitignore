@@ -1,0 +1,11 @@
+# skill-creator eval workspaces (transient, not source of truth)
+scholar-profile-workspace/
+*-workspace/
+.DS_Store
+
+# packaged skill build artifacts
+*.skill
+
+# python bytecode
+__pycache__/
+*.pyc

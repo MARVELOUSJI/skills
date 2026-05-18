@@ -1,0 +1,22 @@
+[
+  {"query": "帮我认识一下 Yann LeCun 这个学者，他师承、研究方向、什么级别都讲讲", "should_trigger": true},
+  {"query": "介绍下斯坦福的李飞飞教授，重点说说她的导师和学生都有谁", "should_trigger": true},
+  {"query": "who is professor Sergey Levine at Berkeley, and how big a deal is he in robotics", "should_trigger": true},
+  {"query": "我想知道 Hinton 的徒子徒孙都有谁，画个学术关系图给我", "should_trigger": true},
+  {"query": "academic genealogy / family tree of Michael I. Jordan please, with sources", "should_trigger": true},
+  {"query": "这个做连续体机器人的 Howie Choset 在学术圈是什么咖位，跟谁合作多", "should_trigger": true},
+  {"query": "把我之前问过的那几个学者关系图打开看一下，能不能拖动", "should_trigger": true},
+  {"query": "Kaiming He 是谁，他的合作者和师承关系帮我梳理下并加进关系图", "should_trigger": true},
+  {"query": "今天 Scholar Inbox 有什么新论文，帮我筛一下高分的", "should_trigger": false},
+  {"query": "把这篇 arXiv 2403.12345 的论文摘要和方法读一下", "should_trigger": false},
+  {"query": "帮我抓一下 https://scholar.google.com/citations?user=abc 这个页面转成 markdown", "should_trigger": false},
+  {"query": "写一篇关于 3D Gaussian Splatting 的文献综述，把近两年代表工作都覆盖", "should_trigger": false},
+  {"query": "给我讲讲马斯克的创业经历和他的人脉圈", "should_trigger": false},
+  {"query": "我论文 related work 里要引用 LeCun 1998 那篇 LeNet，帮我找 bibtex", "should_trigger": false},
+  {"query": "对比一下 ResNet 和 ViT 两个工作的技术路线和性能", "should_trigger": false},
+  {"query": "帮我把 graph.json 这个文件格式化一下", "should_trigger": false},
+  {"query": "Geoffrey Hinton 最近有什么新动态新闻，简单说说", "should_trigger": false},
+  {"query": "这个人 Andrew Ng 在 AI 圈算什么级别，能不能拿别的领域类比让我有概念", "should_trigger": true},
+  {"query": "帮我调研下 Pieter Abbeel 的学术人脉，他带过哪些有名的学生", "should_trigger": true},
+  {"query": "把 viewer.html 里的 vis-network 换成 d3 重写一下", "should_trigger": false}
+]
