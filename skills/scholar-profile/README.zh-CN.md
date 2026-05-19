@@ -47,5 +47,5 @@ Google Scholar 等 JS 页面抓取复用同仓库 `web-fetcher` skill；代理�
 ## 维护提示
 
 - 在 repo 源位置编辑：`~/workspace/skills/skills/scholar-profile/`，勿改 `~/.claude/skills/` 软链接。
-- 改完 `~/dotfiles/scripts/setup-skills.sh` 已会自动建软链接；提交 `feat: add scholar-profile`。
+- 改完 `~/workspace/dotfiles/scripts/setup-skills.sh` 已会自动建软链接；提交 `feat: add scholar-profile`。
 - 脚本用法见 `scripts/graph_store.py --help` 或其顶部 docstring。

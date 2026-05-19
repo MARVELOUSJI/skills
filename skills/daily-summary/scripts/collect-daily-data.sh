@@ -213,7 +213,7 @@ fi
 
 # Add hardcoded extra repos
 EXTRA_REPOS=(
-  "$HOME/dotfiles"
+  "$HOME/workspace/dotfiles"
   "$HOME/workspace/agentic_umm/agentic_umm"
 )
 for repo in "${EXTRA_REPOS[@]}"; do

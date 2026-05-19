@@ -14,7 +14,7 @@ Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) 
 
 ```
 ~/workspace/skills/skills/<name>/          ← this repo (source of truth)
-        │  ~/dotfiles/scripts/setup-skills.sh creates symlinks:
+        │  ~/workspace/dotfiles/scripts/setup-skills.sh creates symlinks:
         ▼
 ~/.claude/skills/<name>                    ← Claude Code reads here
 ~/.agents/skills/<name>                    ← Codex / other agents read here
@@ -58,9 +58,9 @@ user_invocable: true   # optional, enables /<name> slash command
    ```
 2. **Activate**
    ```bash
-   ~/dotfiles/scripts/setup-skills.sh  # auto-picks up new dir, creates symlinks
+   ~/workspace/dotfiles/scripts/setup-skills.sh  # auto-picks up new dir, creates symlinks
    ```
-3. **External deps** — if the skill needs extra CLIs / Python packages / Go binaries / browser extensions: **append to `~/dotfiles/scripts/install-skill-deps.sh`**. Never rely on undocumented manual setup. Goal: fresh Mac + `bootstrap.sh` = everything works.
+3. **External deps** — if the skill needs extra CLIs / Python packages / Go binaries / browser extensions: **append to `~/workspace/dotfiles/scripts/install-skill-deps.sh`**. Never rely on undocumented manual setup. Goal: fresh Mac + `bootstrap.sh` = everything works.
 4. **Test** — open new Claude Code session (or use `/<name>` if `user_invocable`), try a trigger phrase from `description`.
 5. **Commit**
    ```bash
@@ -82,12 +82,12 @@ git push
 ### Always
 - Edit at repo source (`~/workspace/skills/skills/<name>/`), never at the `~/.claude/skills/` symlink location
 - Precise `description` in SKILL.md frontmatter (trigger + NOT for)
-- Co-evolve `~/dotfiles/scripts/install-skill-deps.sh` when adding skills with new external deps
+- Co-evolve `~/workspace/dotfiles/scripts/install-skill-deps.sh` when adding skills with new external deps
 - Test trigger before committing — open a new Claude session and try a trigger phrase
 
 ### Ask first
 - Removing or renaming a skill (breaks existing symlinks, invalidates user's muscle memory on triggers)
-- Changing `~/dotfiles/scripts/setup-skills.sh` linking logic (affects ALL skills here)
+- Changing `~/workspace/dotfiles/scripts/setup-skills.sh` linking logic (affects ALL skills here)
 - Committing large binaries (>1MB) — prefer `references/*.md` over binary assets
 - Bumping or changing external dep versions in `install-skill-deps.sh` (may break other skills sharing the dep)
 
@@ -141,7 +141,7 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 | daily-summary | (optional) Notion integration — currently skipped, auto-degrades gracefully |
 | Others (handoff / init-project / context-audit / sync-docs / project-review) | Pure Claude logic, no external deps |
 
-See `~/dotfiles/scripts/install-skill-deps.sh` for the canonical install flow.
+See `~/workspace/dotfiles/scripts/install-skill-deps.sh` for the canonical install flow.
 
 ## References
 

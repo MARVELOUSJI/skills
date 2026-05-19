@@ -26,7 +26,7 @@ skills/
 
 ## How skills get activated
 
-This repo is the **source of truth**. Activation = symlink to agent read paths, done by `~/dotfiles/scripts/setup-skills.sh`:
+This repo is the **source of truth**. Activation = symlink to agent read paths, done by `~/workspace/dotfiles/scripts/setup-skills.sh`:
 
 ```
 ~/workspace/skills/skills/<name>/                      ← source (this repo)
@@ -42,7 +42,7 @@ Both are symlinks to the same source. **One edit, two agents see it.**
 
 ```bash
 git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
-~/dotfiles/scripts/setup-skills.sh
+~/workspace/dotfiles/scripts/setup-skills.sh
 ```
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
@@ -66,7 +66,7 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 | **sync-docs** | Check if docs need updating after recent code changes | none |
 | **web-fetcher** | Fetch any URL as clean markdown; routes login-required platforms through OpenCLI, generic through Jina Reader | `@jackwener/opencli` (npm) + Chrome extension, Clash Verge proxy for Jina |
 
-All external deps are installed by `~/dotfiles/scripts/install-skill-deps.sh`. Manual interactive logins (Google/NotebookLM, Scholar Inbox cookie, OpenCLI Chrome extension load, rca cluster config) documented in that script's output.
+All external deps are installed by `~/workspace/dotfiles/scripts/install-skill-deps.sh`. Manual interactive logins (Google/NotebookLM, Scholar Inbox cookie, OpenCLI Chrome extension load, rca cluster config) documented in that script's output.
 
 ## Adding a new skill
 
@@ -101,14 +101,14 @@ user_invocable: true    # optional, if you want `/my-new-skill` slash command
 ### 2. Activate
 
 ```bash
-~/dotfiles/scripts/setup-skills.sh   # auto-picks up new dir, creates symlinks
+~/workspace/dotfiles/scripts/setup-skills.sh   # auto-picks up new dir, creates symlinks
 ```
 
 Confirm: `ls -la ~/.claude/skills/my-new-skill` → should be symlink.
 
 ### 3. If skill has external deps
 
-Append install commands to `~/dotfiles/scripts/install-skill-deps.sh`. Never rely on undocumented manual setup — the goal is "fresh Mac + `bootstrap.sh` = everything works".
+Append install commands to `~/workspace/dotfiles/scripts/install-skill-deps.sh`. Never rely on undocumented manual setup — the goal is "fresh Mac + `bootstrap.sh` = everything works".
 
 ### 4. Test
 
@@ -171,7 +171,7 @@ Skills cherry-picked from sjh-skills preserve upstream README / LICENSE referenc
 ### Ask first
 
 - Removing / renaming a skill (breaks symlinks until re-stow, affects user's active triggers)
-- Changing `setup-skills.sh` linking logic (lives in `~/dotfiles/scripts/`, affects all skills)
+- Changing `setup-skills.sh` linking logic (lives in `~/workspace/dotfiles/scripts/`, affects all skills)
 - Committing large binary files (>1MB) — prefer `references/` markdown over binary assets
 
 ### Never
