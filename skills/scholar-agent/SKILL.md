@@ -80,7 +80,7 @@ When `/scholar-inbox` is invoked, the corresponding project config is loaded bas
 On first `/scholar-inbox` invocation, check if `~/.config/scholar-inbox/context.md` exists:
 
 - **Exists** → Load config, proceed to normal flow
-- **Missing** → Interactively collect preferences via AskUserQuestion, then generate config
+- **Missing** → Interactively collect preferences using the available user-input mechanism (Codex: ask directly or use `request_user_input` if available; Claude Code: `AskUserQuestion`), then generate config
 
 #### Round 1: Research Preferences (ask 3 questions simultaneously)
 

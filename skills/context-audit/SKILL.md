@@ -1,16 +1,17 @@
 ---
 name: context-audit
-description: "Audit project context management (CLAUDE.md, rules, knowledge) for progressive disclosure compliance. Checks that all knowledge files are reachable from rules, detects stale references, orphaned files, and CLAUDE.md index leakage. Triggers: 'audit context', 'check context', 'context hygiene', 'context audit', '检查 context', '审计上下文', 'knowledge 覆盖检查'. NOT for: code review, rule content correctness, or knowledge content quality."
+description: "Audit project context management (AGENTS.md/CLAUDE.md, rules, knowledge) for Claude Code and Codex compatibility. Checks that knowledge files are reachable from rules, rule references are valid, AGENTS.md exposes the same project guide as CLAUDE.md for Codex, and guide files avoid knowledge index leakage. Triggers: 'audit context', 'check context', 'context hygiene', 'context audit', '检查 context', '审计上下文', 'knowledge 覆盖检查', 'Codex 上下文检查'. NOT for: code review, rule content correctness, or knowledge content quality."
 user_invocable: true
 ---
 
 # Context Audit
 
-Audits the project's three-layer context management system (CLAUDE.md / rules / knowledge) against the **progressive disclosure** architecture:
+Audits the project's cross-agent context management system (AGENTS.md / CLAUDE.md / rules / knowledge) against the **progressive disclosure** architecture:
 
 ```
-CLAUDE.md (always loaded) — describes architecture, no detailed index
-  └─ Rules (.claude/rules/) (always loaded) — inline `> 详见` refs to knowledge
+AGENTS.md (Codex entry) -> usually a symlink to CLAUDE.md
+CLAUDE.md (Claude Code entry) — describes architecture, no detailed index
+  └─ Rules (.claude/rules/) — referenced by the guide, inline `> 详见` refs to knowledge
        └─ Knowledge (docs/knowledge/) — on-demand deep experience
 ```
 
@@ -18,6 +19,7 @@ CLAUDE.md (always loaded) — describes architecture, no detailed index
 
 - After adding new knowledge files — verify they're indexed from a rule
 - After refactoring rules — verify no references broke
+- After migrating a project to Codex — verify `AGENTS.md` exists and points at the same guide
 - Periodic hygiene check — catch drift over time
 - After onboarding a new domain — verify the new rule covers its knowledge files
 
@@ -34,8 +36,8 @@ find docs/knowledge/ -name "*.md" -type f 2>/dev/null | sort
 # Rule files
 find .claude/rules/ -name "*.md" -type f 2>/dev/null | sort
 
-# CLAUDE.md
-ls CLAUDE.md 2>/dev/null
+# Project guide files
+ls AGENTS.md CLAUDE.md 2>/dev/null
 ```
 
 If `docs/knowledge/` or `.claude/rules/` doesn't exist, report and skip the corresponding checks.
@@ -58,13 +60,25 @@ For each reference found in rule files:
    - **Valid**: target file exists
    - **Stale**: target file doesn't exist (action needed)
 
-### Phase 3: CLAUDE.md Compliance
+### Phase 3: Project Guide Compatibility
 
-Check that CLAUDE.md follows the architecture principle — it should describe the progressive disclosure system, NOT duplicate the detailed index.
+Check that project guide files work for both Claude Code and Codex:
 
-1. **Count direct knowledge references**: grep CLAUDE.md for `docs/knowledge/` patterns
-2. **Check architecture description**: look for keywords indicating the architecture is described (e.g., "渐进式披露", "progressive disclosure", "rules", "详见")
-3. Flag if CLAUDE.md contains more than **3 direct knowledge file references** (suggests index leakage — the detailed index belongs in rules, not CLAUDE.md)
+1. **Entrypoint presence**:
+   - `CLAUDE.md` present → Claude Code can load the project guide
+   - `AGENTS.md` present → Codex can load the project guide
+   - Best case: `AGENTS.md` is a symlink to `CLAUDE.md`
+2. **Entrypoint drift**:
+   - If `AGENTS.md` is a regular file, compare whether it contains the same `.claude/rules/` references as `CLAUDE.md`
+   - Flag missing or stale references in either guide
+3. **Rule import/reference validity**:
+   - Grep guide files for `@.claude/rules/<file>.md` and `.claude/rules/<file>.md`
+   - Verify each referenced rule exists
+4. **Index leakage**:
+   - Count direct knowledge references in the canonical guide (`CLAUDE.md`, or `AGENTS.md` if no CLAUDE.md) using `docs/knowledge/`
+   - Flag if the guide contains more than **3 direct knowledge file references** (suggests index leakage — the detailed index belongs in rules, not the guide)
+5. **Architecture description**:
+   - Look for keywords indicating the architecture is described (e.g., "渐进式披露", "progressive disclosure", "rules", "详见", "AGENTS.md")
 
 Exception: a summary table mapping rule files to knowledge domains is acceptable (it's architecture description, not a detailed index).
 
@@ -96,8 +110,12 @@ Stale references: N
 |-----------|------|-----------|--------|
 | .claude/rules/bar.md | 42 | docs/knowledge/removed.md | file not found |
 
-## CLAUDE.md Compliance
+## Project Guide Compatibility
 
+- AGENTS.md: [PRESENT symlink -> CLAUDE.md / PRESENT regular file / MISSING]
+- CLAUDE.md: [PRESENT / MISSING]
+- Guide drift: [PASS / WARN — AGENTS.md missing refs found in CLAUDE.md]
+- Rule references: [PASS / WARN — stale rule reference detected]
 - Architecture description: [FOUND / MISSING]
 - Direct knowledge refs: N (threshold: <=3)
 - Status: [PASS / WARN — index leakage detected]
@@ -131,7 +149,7 @@ If orphaned files are found, suggest concrete edits:
 ## Constraints
 
 - **Read-only** — never modify files. This is an audit tool, not an auto-fixer.
-- **Project-agnostic** — works with any project that has `docs/knowledge/` and `.claude/rules/`. Does not assume specific file names.
+- **Project-agnostic** — works with any project that has `AGENTS.md` and/or `CLAUDE.md`, `docs/knowledge/`, and `.claude/rules/`. Does not assume specific file names.
 - **Follow the user's language** — respond in whichever language the user uses.
 - **Deprecated files are not failures** — files with `[DEPRECATED]` markers are expected to exist without rule references. Report them for visibility but don't flag as errors.
-- **Threshold, not perfection** — the CLAUDE.md compliance check uses a threshold (<=3 direct refs). A summary table mapping rules to knowledge domains is architecture description, not index leakage.
+- **Threshold, not perfection** — the guide compliance check uses a threshold (<=3 direct refs). A summary table mapping rules to knowledge domains is architecture description, not index leakage.

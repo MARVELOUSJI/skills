@@ -1,11 +1,11 @@
 ---
 name: init-project
-description: 初始化新项目的 Claude Code 配置。用户说"初始化项目"、"init project"、"配置 Claude Code"时触发。
+description: 初始化新项目的 Claude Code / Codex 双端项目上下文配置。用户说"初始化项目"、"init project"、"配置 Claude Code"、"配置 Codex 项目上下文"、"创建 AGENTS.md/CLAUDE.md"时触发。
 ---
 
 # Init Project
 
-Automatically configure Claude Code best practices for new projects: directory skeleton, general-purpose agents, hooks, and CLAUDE.md.
+Automatically configure cross-agent project context for new projects: directory skeleton, Claude Code helpers, progressive-disclosure rules/knowledge, `CLAUDE.md`, and `AGENTS.md -> CLAUDE.md` for Codex.
 
 ## Execution Flow
 
@@ -13,14 +13,15 @@ Automatically configure Claude Code best practices for new projects: directory s
    → Run `scripts/init-skeleton.sh` to create directory structure + boilerplate files
    → Output which files were created
 
-2. **Phase 2: Interactive CLAUDE.md Fill** (LLM + AskUserQuestion)
+2. **Phase 2: Interactive CLAUDE.md Fill** (LLM + available user-input mechanism)
    → Process `<!-- init-project: 待填充 -->` placeholders section by section
-   → For each section: read codebase → generate draft → AskUserQuestion to confirm → write
+   → For each section: read codebase → generate draft → ask the user to confirm → write
+   → In Codex, ask directly or use `request_user_input` if available; in Claude Code, use `AskUserQuestion`
    → User can reply "skip" to skip any section
    → Detailed guide templates in `details/claude-md-sections.md`
 
 3. **Phase 3: Profile Overlay** (optional)
-   → AskUserQuestion: "Want to overlay an additional profile? Currently supported: research"
+   → Ask the user: "Want to overlay an additional profile? Currently supported: research"
    → If research selected → run `scripts/init-research-profile.sh`
    → Profile details in `details/research-profile.md`
 
@@ -48,6 +49,7 @@ Automatically configure Claude Code best practices for new projects: directory s
 - **No auto git add/commit**: user decides when to commit
 - **No existing content modification**: only `<!-- init-project: 待填充 -->` placeholders are touched
 - **Scripts run standalone**: `init-skeleton.sh` and `init-research-profile.sh` work independently of the skill
+- **Codex compatibility**: the skeleton creates `AGENTS.md -> CLAUDE.md`. If `AGENTS.md` already exists, never overwrite it; report whether it is a symlink to `CLAUDE.md` or a separate file that may need manual sync.
 
 ## References
 

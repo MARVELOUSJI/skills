@@ -8,7 +8,7 @@
 # <directory-name>
 
 > 由 wrap-up skill 生成于 <YYYY-MM-DD>。再次进入此目录时，按本文档恢复 context。
-> 父目录 CLAUDE.md（如有）提供项目级规则，本文件提供本子目录运行细节。
+> 父目录项目 guide（CLAUDE.md / AGENTS.md，如有）提供项目级规则，本文件提供本子目录运行细节。
 
 ## 主入口
 
@@ -73,6 +73,6 @@
 
 ## 父目录 CLAUDE.md 的关系
 
-如果 `find ~/. -maxdepth 5 -name CLAUDE.md` 在父目录找到 CLAUDE.md（典型场景：仓库根有 CLAUDE.md 描述全局规则），子目录 CLAUDE.md 顶部要点出"父目录 CLAUDE.md 提供项目级规则，本文件提供本子目录运行细节"，让 agent 知道两者并存、不冲突。
+如果在父目录找到 `CLAUDE.md` 或 `AGENTS.md`（典型场景：仓库根有项目级 guide 描述全局规则），子目录 `CLAUDE.md` 顶部要点出"父目录项目 guide（CLAUDE.md / AGENTS.md，如有）提供项目级规则，本文件提供本子目录运行细节"，让 agent 知道两者并存、不冲突。
 
-**不要去修改父目录 CLAUDE.md。**
+**不要去修改父目录 CLAUDE.md / AGENTS.md。**

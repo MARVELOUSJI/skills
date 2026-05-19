@@ -43,7 +43,7 @@ notebooklm source add "https://arxiv.org/html/<ID>"
 - Semantic Scholar API — for citation count, related papers, and metadata:
   `https://api.semanticscholar.org/graph/v1/paper/ArXiv:<ID>?fields=title,abstract,year,citationCount,authors`
 - `/web-fetcher` on arXiv HTML — fallback if NotebookLM source processing fails
-- Direct PDF via Read tool — if the user provides a local path
+- Direct PDF via the available file-reading tool — if the user provides a local path
 
 **How to use NotebookLM during analysis**: Use `notebooklm ask` throughout all steps — for understanding the paper's narrative (Step 2), extracting numbers (Step 3), and verifying claims. Example questions:
 

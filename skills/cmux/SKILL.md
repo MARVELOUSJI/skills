@@ -5,7 +5,7 @@ description: "Use this skill for ANY multi-pane or multi-agent terminal orchestr
 
 # cmux Orchestration
 
-Orchestrate terminal sessions, spawn Claude Code instances, automate the built-in browser, preview markdown — all inside cmux.
+Orchestrate terminal sessions, spawn Claude Code or Codex instances, automate the built-in browser, preview markdown — all inside cmux.
 
 ## Detection
 
@@ -52,12 +52,14 @@ cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=h
 # Claude Code — non-interactive mode (run task, capture output, signal completion)
 cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && claude -p "your prompt" --model haiku 2>&1 | tee /tmp/agent-output.txt; echo "AGENT_DONE"\n'
 
-# Codex — interactive mode (full-auto, user can intervene)
-cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex --dangerously-bypass-approvals-and-sandbox\n'
+# Codex — interactive mode (uses ~/.codex/config.toml approval/sandbox defaults; user can intervene)
+cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex\n'
 
 # Codex — with initial prompt
-cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex --dangerously-bypass-approvals-and-sandbox -p "your prompt"\n'
+cmux send --surface <ref> 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex "your prompt"\n'
 ```
+
+Use plain `codex` by default so Codex reads `~/.codex/config.toml` and keeps the user's configured approval/sandbox policy. Only add `--dangerously-bypass-approvals-and-sandbox` when the user explicitly asks for a full bypass mode.
 
 When the user asks to "split a pane with Codex/Claude/agent", always:
 1. `cmux new-split <direction>` to create the pane
@@ -156,9 +158,9 @@ Launch an agent in a split pane that the user can interact with directly:
 cmux new-split right
 cmux send --surface surface:2 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && claude --dangerously-skip-permissions\n'
 
-# Codex in right split (full-auto mode)
+# Codex in right split (uses configured Codex approval/sandbox defaults)
 cmux new-split right
-cmux send --surface surface:2 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex --dangerously-bypass-approvals-and-sandbox\n'
+cmux send --surface surface:2 'export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897 HTTPS_PROXY=http://127.0.0.1:7897 HTTP_PROXY=http://127.0.0.1:7897 ALL_PROXY=socks5://127.0.0.1:7897 && codex\n'
 ```
 
 To feed context to the agent after it starts (e.g., a handoff prompt):

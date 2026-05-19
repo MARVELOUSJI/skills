@@ -1,12 +1,12 @@
 # MARVELOUSJI/skills — Agent Guide
 
-This file is **auto-loaded** when a Claude Code session opens in this repo. Read me before modifying skills or adding new ones.
+This file is **auto-loaded** when a Claude Code session opens in this repo, and by Codex through `AGENTS.md -> CLAUDE.md`. Read me before modifying skills or adding new ones.
 
 > Human-oriented overview is in [README.md](README.md). This file is for the agent.
 
 ## What this repo is
 
-The **source of truth** for all personal skills. 12 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained research + Clash Verge proxy on port 7897).
+The **source of truth** for all personal skills. 14 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained research + Clash Verge proxy on port 7897).
 
 Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) — environment, tools, activation scripts.
 
@@ -18,6 +18,7 @@ Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) 
         ▼
 ~/.claude/skills/<name>                    ← Claude Code reads here
 ~/.agents/skills/<name>                    ← Codex / other agents read here
+AGENTS.md -> CLAUDE.md                     ← Codex project guide entrypoint for this repo
 ```
 
 **Edit here, both agents see.** Never edit `~/.claude/skills/<name>/...` as if it were separate — it's a symlink to this repo.
@@ -45,7 +46,7 @@ user_invocable: true   # optional, enables /<name> slash command
 ---
 ```
 
-- `description` is how Claude decides to invoke. Over-specify trigger phrases, under-specify scope.
+- `description` is how Claude Code / Codex decide to invoke. Over-specify trigger phrases, under-specify scope.
 - Include both English and Chinese trigger patterns when relevant (user operates in Chinese primarily).
 - Use `NOT for: ...` clauses to prevent triggering on adjacent intents.
 
@@ -61,7 +62,7 @@ user_invocable: true   # optional, enables /<name> slash command
    ~/workspace/dotfiles/scripts/setup-skills.sh  # auto-picks up new dir, creates symlinks
    ```
 3. **External deps** — if the skill needs extra CLIs / Python packages / Go binaries / browser extensions: **append to `~/workspace/dotfiles/scripts/install-skill-deps.sh`**. Never rely on undocumented manual setup. Goal: fresh Mac + `bootstrap.sh` = everything works.
-4. **Test** — open new Claude Code session (or use `/<name>` if `user_invocable`), try a trigger phrase from `description`.
+4. **Test** — open a new Claude Code or Codex session (or use `/<name>` if `user_invocable`), try a trigger phrase from `description`.
 5. **Commit**
    ```bash
    cd ~/workspace/skills && git add -A && git commit -m "feat: add <name>" && git push
@@ -80,10 +81,10 @@ git push
 ## Behavior Boundaries
 
 ### Always
-- Edit at repo source (`~/workspace/skills/skills/<name>/`), never at the `~/.claude/skills/` symlink location
+- Edit at repo source (`~/workspace/skills/skills/<name>/`), never at the `~/.claude/skills/` or `~/.agents/skills/` symlink locations
 - Precise `description` in SKILL.md frontmatter (trigger + NOT for)
 - Co-evolve `~/workspace/dotfiles/scripts/install-skill-deps.sh` when adding skills with new external deps
-- Test trigger before committing — open a new Claude session and try a trigger phrase
+- Test trigger before committing — open a new Claude Code or Codex session and try a trigger phrase
 
 ### Ask first
 - Removing or renaming a skill (breaks existing symlinks, invalidates user's muscle memory on triggers)
@@ -103,7 +104,7 @@ git push
 
 The user may work in a proxy-constrained network environment. Services like `r.jina.ai`, OpenAI API, sometimes GitHub raw files are slow/blocked without Clash Verge proxy (SOCKS5 127.0.0.1:7897).
 
-- User's `cc` / `cct` / `cx` aliases (in `dotfiles/zsh/.zshrc.shared`) inline-export `http_proxy` / `https_proxy` / `all_proxy` before launching agents — so Claude Code running under these aliases has proxy env set
+- User's `cc` / `cct` / `cx` aliases (in `dotfiles/zsh/.zshrc.shared`) inline-export `http_proxy` / `https_proxy` / `all_proxy` before launching agents, so terminal-launched agents inherit proxy env. Codex App may have a different environment; prefer checking env before assuming network access.
 - Skills using Python `httpx` / `requests` / `urllib` will inherit those env vars automatically
 - Python packages using httpx may need `socksio` extra for SOCKS — example: `pipx inject notebooklm-py socksio` (already baked into `install-skill-deps.sh`)
 - `curl` also respects env vars — no extra config
@@ -112,9 +113,9 @@ The user may work in a proxy-constrained network environment. Services like `r.j
 ## Testing a skill manually
 
 ```bash
-# Open new Claude Code session, in any project
+# Open a new Claude Code or Codex session, in any project
 # Try an English and Chinese trigger from SKILL.md description
-# If matched, Claude invokes the skill automatically.
+# If matched, the agent invokes the skill automatically.
 # If not matched, check whether your description phrasing aligns with likely user utterances.
 
 # For scripted skill logic (e.g., skill has scripts/foo.sh):
@@ -139,7 +140,7 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 | codex-review | `codex` CLI + OpenAI creds |
 | cmux | `cmux` CLI (bundled with cmux.app) |
 | daily-summary | (optional) Notion integration — currently skipped, auto-degrades gracefully |
-| Others (handoff / init-project / context-audit / sync-docs / project-review) | Pure Claude logic, no external deps |
+| Others (handoff / init-project / context-audit / sync-docs / project-review) | Pure agent instructions, no external deps |
 
 See `~/workspace/dotfiles/scripts/install-skill-deps.sh` for the canonical install flow.
 

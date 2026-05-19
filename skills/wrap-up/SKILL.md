@@ -28,7 +28,7 @@ user_invocable: true
 不要在以下场景用：
 - 只想生成一份贴到下次会话开头的摘要（用 `handoff`）。
 - 只想检查现有 CLAUDE.md / rules / knowledge 是否健康（用 `context-audit`，read-only）。
-- 全新空目录想初始化 Claude Code 配置（用 `init-project`）。
+- 全新空目录想初始化 Claude Code / Codex 项目上下文（用 `init-project`）。
 
 ## Execution
 
@@ -222,24 +222,26 @@ knowledge — "现在的状态与历史" — 进度变了就要更新
 #### 2.5 AGENTS.md 软链接
 
 ```bash
-ln -sf CLAUDE.md AGENTS.md
+if [ ! -e AGENTS.md ]; then
+  ln -s CLAUDE.md AGENTS.md
+fi
 ```
 
-理由：OpenAI Codex CLI（以及越来越多其他 agent CLI）默认读 AGENTS.md。一个软链接覆盖所有约定，不重复维护两份内容。
+理由：OpenAI Codex CLI（以及越来越多其他 agent CLI）默认读 AGENTS.md。一个软链接覆盖所有约定，不重复维护两份内容。若 `AGENTS.md` 已存在，不要强制覆盖；先检查它是否已经指向 `CLAUDE.md`，如果是独立文件则向用户报告可能存在双入口 drift。
 
 #### 2.6 父目录 CLAUDE.md 的处理
 
-如果当前目录有父目录 CLAUDE.md（比如 `~/workspace/visualization/CLAUDE.md`），**不要修改父目录文件**。Claude Code 会自动加载父目录 CLAUDE.md，新建的子目录 CLAUDE.md 是补充而非替代。
+如果当前目录有父目录 `CLAUDE.md` / `AGENTS.md`（比如 `~/workspace/visualization/CLAUDE.md` 和对应 `AGENTS.md`），**不要修改父目录文件**。Claude Code 通过父目录 `CLAUDE.md` 读取项目级规则；Codex 通过父目录 `AGENTS.md` 读取项目级规则。新建的子目录 `CLAUDE.md` / `AGENTS.md` 是补充而非替代。
 
-可选：在子目录 CLAUDE.md 顶部加一句"父目录 CLAUDE.md 提供项目级规则，本文件提供本子目录的运行细节"，让 agent 知道两者关系。
+可选：在子目录 `CLAUDE.md` 顶部加一句"父目录项目 guide（CLAUDE.md / AGENTS.md，如有）提供项目级规则，本文件提供本子目录的运行细节"，让 agent 知道两者关系。
 
 ### Phase 3 — 收尾提示
 
 skill 跑完后，告诉用户：
 
-> 已完成。下次进这个目录开 Claude Code / Codex CLI，会自动加载 CLAUDE.md / AGENTS.md。
+> 已完成。下次进这个目录开 Claude Code / Codex CLI，会分别通过 CLAUDE.md / AGENTS.md 加载这份 guide。
 > 你可以直接说"我们继续上次的工作"、"看 progress 然后继续 todo 里的第一项"。
-> 如果你之后要审计 context 系统的健康度，运行 `/context-audit`。
+> 如果你之后要审计 context 系统的健康度，运行 `/context-audit`，它会同时检查 AGENTS.md / CLAUDE.md 入口。
 
 ## Safety Constraints
 
@@ -254,7 +256,7 @@ skill 跑完后，告诉用户：
    - `requirements*.txt`、`pyproject.toml`、`package.json` — 依赖声明
    - `LICENSE`、`COPYING` — 法律文件
 5. **Idempotent**：再次跑 wrap-up 时，已有的 CLAUDE.md / rules / knowledge 走 update（合并新内容、不覆盖用户后续手改），不 overwrite。
-6. **不要修改父目录的 CLAUDE.md**。
+6. **不要修改父目录的 CLAUDE.md / AGENTS.md**。
 
 ## 何时升级到独立 rule 文件
 

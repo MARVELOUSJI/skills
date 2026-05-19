@@ -1,9 +1,9 @@
-# CLAUDE.md Section-by-Section Fill Guide
+# Project Guide Section-by-Section Fill Guide
 
-In Phase 2, process each `<!-- init-project: 待填充 -->` placeholder. Per-section flow:
+In Phase 2, process each `<!-- init-project: 待填充 -->` placeholder in `CLAUDE.md`. The generated `AGENTS.md -> CLAUDE.md` symlink lets Codex read the same project guide. Per-section flow:
 
 ```
-Read codebase (auto) → Generate draft (auto) → AskUserQuestion to confirm → Write to CLAUDE.md
+Read codebase (auto) → Generate draft (auto) → confirm with the available user-input mechanism → update CLAUDE.md
 ```
 
 User can reply "skip" to skip any section and keep the placeholder.
@@ -19,7 +19,7 @@ Read: README.md, pyproject.toml, package.json, Cargo.toml, go.mod
 Extract: project name, description, main dependencies
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Here's a draft project overview:
@@ -57,7 +57,7 @@ Detect: API key references in .env, config files
 Read: model config files (yaml, json)
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Here's a draft of key models/dependencies:
@@ -88,7 +88,7 @@ Read each subdirectory's README.md or __init__.py docstring
 Identify: core modules, third-party deps, scripts, tests, docs
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Here's a draft directory structure:
@@ -134,12 +134,12 @@ Detect: .github/workflows/, Makefile, Justfile, scripts/, Dockerfile
 Detect: CI/CD presence, pre-commit hooks
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Detected the following dev tools: {tool list}
 
-CLAUDE.md already includes the default brainstorming→plans→dev→verify flow.
+The project guide already includes the default brainstorming→plans→dev→verify flow.
 Does your project have additional workflow stages? (e.g., deployment, release, data processing)
 
 Press Enter to skip / type additions.
@@ -157,7 +157,7 @@ Detect: test framework (pytest/jest/go test), lint tools (ruff/eslint)
 Read: pyproject.toml or package.json scripts section
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Here's a draft dev guide:
@@ -189,10 +189,10 @@ Detect: lint config (pyproject.toml [tool.ruff], .eslintrc)
 Scan: multi-module configs that need consistency
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
-CLAUDE.md already includes 3 generic Always Do rules:
+The project guide already includes 3 generic Always Do rules:
 - Read related files before modifying code
 - Run related unit tests after modifications
 - Follow the same module's code style
@@ -217,7 +217,7 @@ Scan: config files (yaml, toml, json)
 Scan: third_party/ dependencies
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Already includes 1 generic Ask First rule:
@@ -244,7 +244,7 @@ Detect: .env, credentials, and other sensitive files
 Scan: immutable interface contracts
 ```
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Already includes 2 generic Never Do rules:
@@ -284,7 +284,7 @@ If a knowledge file has no matching rule, either:
 1. Create a minimal rule file that references it, or
 2. Add the reference to the closest existing rule
 
-### AskUserQuestion
+### User Confirmation
 
 ```
 Found the following knowledge files and their rule references:
@@ -303,7 +303,7 @@ Any knowledge files that need a new rule file? Any additional inline references 
 Once all sections are processed, output a summary:
 
 ```
-## CLAUDE.md Fill Complete
+## Project Guide Fill Complete
 
 | Section | Status |
 |---------|--------|
@@ -312,5 +312,5 @@ Once all sections are processed, output a summary:
 | Dev workflow | ⊘ Skipped |
 | ...     | ... |
 
-Next step: review CLAUDE.md content, then git add + commit.
+Next step: review CLAUDE.md content and confirm AGENTS.md still points at it, then git add + commit.
 ```

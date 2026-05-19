@@ -17,7 +17,7 @@ Local control plane for remote GPU clusters: a Go daemon + `rca` CLI. All comman
    - If the target node is dead → `rca connect <node>`. Still dead → re-establish whatever SSH tunneling / VPN / jump host you depend on, then retry.
    - Second round still dead → read `rca daemon logs -f` for error detail.
 4. **Project init check** (only when the user's request involves **project-level development** — modifying code, running Python / pytest / training, executing scripts in the cwd. Skip for pure cluster queries like `rca nodes` / `nvidia-smi` / "看下哪个节点空"). See "Project init flow" below for the full procedure.
-5. Run the user's command (following the project rule if one exists at `<cwd>/.claude/rules/remote-cluster-agent.md`).
+5. Run the user's command (following the project rule if one exists at `<cwd>/.claude/rules/remote-cluster-agent.md`; read it explicitly before remote development work, especially under Codex where `@...` references are not guaranteed to be expanded automatically).
 
 **Don't write raw `ssh` commands**, always use `rca exec` / `rca batch`.
 
@@ -27,13 +27,13 @@ Local control plane for remote GPU clusters: a Go daemon + `rca` CLI. All comman
 
 When the user's request involves project-level development in the current working directory:
 
-1. Check `<cwd>/.claude/rules/remote-cluster-agent.md` with the `Read` tool.
+1. Check `<cwd>/.claude/rules/remote-cluster-agent.md` with the available file-reading tool.
 2. **If it exists** → read the project key from it, then `Read ~/.config/rca/config.toml` to resolve concrete values, and continue with the user's request following the three rules.
 3. **If it does not exist** → **pause the user's original request** and tell them: "这个项目还没初始化 remote-cluster-agent 配置，先回答几个问题再继续。" Then:
 
    **(a) Read existing config.** Open `~/.config/rca/config.toml` to list configured nodes (so you can offer them as options) and to know the chosen node's `dir` / `conda_sh` defaults.
 
-   **(b) Ask via `AskUserQuestion`** (one batch of 5 questions):
+   **(b) Ask the user** (one batch of 5 questions; in Codex ask directly or use `request_user_input` if available, in Claude Code use `AskUserQuestion`):
    1. **Which node?** — options are the keys under `[nodes.*]` from config.toml.
    2. **Remote project directory** (absolute path) — default suggestion: `<chosen-node.dir>/<cwd-basename>` if node has `dir`, else `~/<cwd-basename>`.
    3. **Conda env name on remote** (e.g. `myproject`).
@@ -42,20 +42,26 @@ When the user's request involves project-level development in the current workin
 
    Only ask about `conda_sh` (init script path on the remote) if the chosen node doesn't already have one set in config.toml — then default `~/miniconda3/etc/profile.d/conda.sh` covers most setups; ask the user to confirm or override.
 
-   **(c) Update `~/.config/rca/config.toml`** (use `Edit` tool to surgically modify, don't rewrite the whole file):
+   **(c) Update `~/.config/rca/config.toml`** (use the available file-editing mechanism to surgically modify it; don't rewrite the whole file):
    - Append a new `[projects.<cwd-basename>]` block with `default_node`, `dir`, `conda_env`, `mutagen_session`, `ignores` filled from the answers (write `ignores = []` if the user had nothing).
    - If the chosen node's `conda_sh` is empty in config.toml, fill it in `[nodes.<chosen-node>]` (so it doubles as the default for any future projects on the same node).
-   - Verify by `Read`-ing the file again and confirming the new entries are correctly placed (no stray syntax).
+   - Verify by reading the file again and confirming the new entries are correctly placed (no stray syntax).
 
    **(d) Write the thin project rule file:**
    - `Read` `<skill_dir>/templates/project-rule.md.tmpl`.
    - Substitute the **only** placeholder `{{PROJECT_KEY}}` with the cwd basename. (Do **not** embed concrete node/dir/env/session values into this file — those live in config.toml.)
-   - `Write` to `<cwd>/.claude/rules/remote-cluster-agent.md` (create `.claude/rules/` if needed).
+   - Write to `<cwd>/.claude/rules/remote-cluster-agent.md` (create `.claude/rules/` if needed).
 
-   **(e) Update `<cwd>/CLAUDE.md`:**
+   **(e) Update project guide entrypoints for both Claude Code and Codex:**
    - If it doesn't exist → create it with the single line `@.claude/rules/remote-cluster-agent.md`.
    - If it exists and doesn't contain that line → append it (with a leading blank line if the file doesn't end with one).
    - If it already contains that line → leave it untouched (idempotent).
+   - Ensure `<cwd>/AGENTS.md` exists for Codex:
+     - If missing and `CLAUDE.md` exists → create a relative symlink: `ln -s CLAUDE.md AGENTS.md`.
+     - If it is already a symlink to `CLAUDE.md` → leave it untouched.
+     - If it is a regular file and doesn't contain `@.claude/rules/remote-cluster-agent.md` → append the same line there too.
+     - If it is a symlink to another target → read the target and only update it if it is clearly the project guide; otherwise report the mismatch and ask before editing.
+   - Do not overwrite an existing `AGENTS.md`; Codex depends on it as the project entrypoint.
 
    **(f) Create the mutagen session** if one doesn't already exist for this `mutagen_session` name (`mutagen sync list` to check). If missing, run:
 
@@ -113,7 +119,7 @@ rca nodes                 # confirm nodes connected
 rca agent check           # if agent missing → rca agent deploy
 ```
 
-> **Project-level rule** (per project, not global): the first time the user uses this skill in a new project directory for actual development, follow the **Project init flow** above to drop a rule file into `<cwd>/.claude/rules/remote-cluster-agent.md`. That file records the project's node, conda env, mutagen session, and remote dir, and is auto-loaded by Claude Code in future sessions in that project. Don't run this for every cwd — only when you're about to run / test / develop project code remotely.
+> **Project-level rule** (per project, not global): the first time the user uses this skill in a new project directory for actual development, follow the **Project init flow** above to drop a rule file into `<cwd>/.claude/rules/remote-cluster-agent.md`. That file records the project's node, conda env, mutagen session, and remote dir. Future Claude Code sessions see it through `CLAUDE.md`; future Codex sessions see it through `AGENTS.md` (usually a symlink to `CLAUDE.md`). Don't run this for every cwd — only when you're about to run / test / develop project code remotely.
 
 ## Common operations
 
@@ -231,7 +237,7 @@ Mutagen syncs in near-real-time but is **not synchronous**. There's a small wind
 
 Note: there is **no** "remote → local" race to worry about — under one-way-replica, mutagen never propagates remote changes back, so flush has nothing to do in that direction. To pull remote outputs locally, use `rca cp` (see Sync direction above).
 
-Once a project is initialized via the project init flow, the project rule file at `<cwd>/.claude/rules/remote-cluster-agent.md` records the session name and reminds Claude of this rule on every session. Without an initialized project, follow the same rule manually using whatever session name `mutagen sync list` shows.
+Once a project is initialized via the project init flow, the project rule file at `<cwd>/.claude/rules/remote-cluster-agent.md` records the session name and reminds future agents of this rule through `CLAUDE.md` / `AGENTS.md`. Without an initialized project, follow the same rule manually using whatever session name `mutagen sync list` shows.
 
 **Exempt** (no flush needed): pure queries that don't touch files you just changed — `nvidia-smi`, `ps`, `df`, `uptime`, `tmux ls`, `conda env list`, `rca nodes`.
 
@@ -344,6 +350,6 @@ Without this, start the daemon manually with `rca daemon start` whenever you reb
 
 ## Architecture
 
-The daemon runs independently of Claude Code (Unix socket), so every session shares one connection pool. The CLI is standalone too — usable in shells, scripts, or cron. Cluster-side `agent.py` speaks JSON-Lines v2.1.0 (streaming, cancel, batch, file transfer).
+The daemon runs independently of any agent session (Unix socket), so every session shares one connection pool. The CLI is standalone too — usable in shells, scripts, or cron. Cluster-side `agent.py` speaks JSON-Lines v2.1.0 (streaming, cancel, batch, file transfer).
 
 > **Upgrading from MCP v0.3.x**: `remote_bash(node, cmd)` → `rca exec -n node "cmd"`, `remote_bash_batch` → `rca batch`. Legacy `~/.config/remote-cluster-agent/*.md` markdown config auto-migrates on `rca config init`.

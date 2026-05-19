@@ -1,5 +1,5 @@
 #!/bin/bash
-# init-skeleton.sh — Generate Claude Code configuration skeleton for new projects
+# init-skeleton.sh — Generate Claude Code / Codex project context skeleton
 # Usage: bash init-skeleton.sh [project-root]
 # Idempotent: existing files are never overwritten
 
@@ -565,3 +565,4 @@ fi
 
 echo ""
 echo "Next: run Phase 2 to interactively fill CLAUDE.md"
+echo "Codex note: AGENTS.md should point to CLAUDE.md; if it was skipped, inspect it for drift."

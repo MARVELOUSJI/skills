@@ -1,10 +1,12 @@
 # remote-cluster-agent: Project Rule
 
-This project uses the `remote-cluster-agent` skill for development on a remote GPU cluster. Claude Code auto-loads this file when sessions start in this project — these behavioral rules apply to **all** sessions here.
+This project uses the `remote-cluster-agent` skill for development on a remote GPU cluster. This file is referenced from the project guide (`CLAUDE.md`, and `AGENTS.md` for Codex, usually as a symlink to `CLAUDE.md`) — these behavioral rules apply to **all** sessions here.
 
 **Project key**: `{{PROJECT_KEY}}`
 
 All concrete values (which node, remote dir, conda env, conda init script, mutagen session name, ignores) live in `~/.config/rca/config.toml` under `[projects.{{PROJECT_KEY}}]` and `[nodes.<default_node>]` — **not in this file**. Look them up at the start of each session, then apply the rules below using those values.
+
+Codex compatibility note: if the session started from Codex and you only saw `@.claude/rules/remote-cluster-agent.md` in `AGENTS.md`, explicitly read this file before running remote code. Do not assume `@...` references were expanded into context.
 
 ```bash
 # Quick lookup (run once per session, cache the values):

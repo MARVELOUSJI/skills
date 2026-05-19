@@ -49,7 +49,8 @@ user_invocable: true
 
 1. 用 `WebSearch` 搜 `<姓名> <机构/方向> google scholar`，并尝试定位其
    Google Scholar profile（`scholar.google.com/citations?user=...`）。
-2. **多个可信候选**（不同机构/方向/引用量级）→ 用 `AskUserQuestion` 列出候选
+2. **多个可信候选**（不同机构/方向/引用量级）→ 用当前 agent 可用的用户输入机制列出候选
+   （Codex 中直接提问或使用 `request_user_input`；Claude Code 中使用 `AskUserQuestion`）
    （每项：姓名 / 机构 / 方向 / 大致引用量级 / Scholar 链接），让用户选定，**不要自己猜**。
 3. 只有一个明确候选 → 简短复述"我锁定的是 X（机构 Y，方向 Z），开始调研"，继续。
 4. `python3 .../graph_store.py list-nodes` 看此人是否已在全局图里：

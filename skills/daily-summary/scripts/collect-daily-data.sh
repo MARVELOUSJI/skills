@@ -3,7 +3,7 @@ set -euo pipefail
 
 # =============================================================================
 # collect-daily-data.sh
-# Aggregates Claude Code sessions, Git commits, and Notion tasks for a given day.
+# Aggregates Claude Code sessions, Codex sessions, Git commits, and Notion tasks for a given day.
 # Usage: bash collect-daily-data.sh --date today|yesterday|24h|YYYY-MM-DD
 # =============================================================================
 
@@ -68,6 +68,8 @@ echo "=== CLAUDE CODE SESSIONS ==="
 echo ""
 
 HISTORY_FILE="$HOME/.claude/history.jsonl"
+CODEX_SESSIONS_DIR="$HOME/.codex/sessions"
+CODEX_SESSION_INDEX="$HOME/.codex/session_index.jsonl"
 
 if [[ -f "$HISTORY_FILE" ]]; then
   START_MS="$START_MS" END_MS="$END_MS" python3 << 'PYEOF'
@@ -181,6 +183,150 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 3b. Section 1b: Codex Sessions
+# ---------------------------------------------------------------------------
+echo "=== CODEX SESSIONS ==="
+echo ""
+
+if [[ -d "$CODEX_SESSIONS_DIR" ]]; then
+  START_MS="$START_MS" END_MS="$END_MS" CODEX_SESSIONS_DIR="$CODEX_SESSIONS_DIR" CODEX_SESSION_INDEX="$CODEX_SESSION_INDEX" python3 << 'PYEOF'
+import json
+import os
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+
+start_ms = int(os.environ["START_MS"])
+end_ms = int(os.environ["END_MS"])
+sessions_dir = Path(os.environ["CODEX_SESSIONS_DIR"])
+session_index = Path(os.environ["CODEX_SESSION_INDEX"])
+
+thread_names = {}
+if session_index.exists():
+    with open(session_index) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            sid = entry.get("id")
+            if sid:
+                thread_names[sid] = entry.get("thread_name", "")
+
+def iso_to_ms(value):
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return int(dt.timestamp() * 1000)
+
+def local_hhmm(ms):
+    return datetime.fromtimestamp(ms / 1000).strftime("%H:%M")
+
+def extract_text(content):
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") in {"input_text", "text"}:
+                parts.append(item.get("text", ""))
+        return " ".join(parts)
+    return ""
+
+def keep_user_text(text):
+    text = text.strip()
+    if len(text) < 5:
+        return ""
+    skip_prefixes = (
+        "<",
+        "# AGENTS.md instructions",
+        "The following is the Codex agent history",
+        ">>> TRANSCRIPT",
+        "Reviewed Codex session id:",
+    )
+    if text.startswith(skip_prefixes):
+        return ""
+    text = re.sub(r"(ntn_|sk-|ghp_|gho_|glpat-|xoxb-|xoxp-)\S+", r"\1***", text)
+    return text[:117] + "..." if len(text) > 120 else text
+
+items = []
+for path in sessions_dir.rglob("*.jsonl"):
+    meta = {}
+    timestamps = []
+    user_messages = []
+    skip_session = False
+
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            payload = entry.get("payload", {})
+            if entry.get("type") == "session_meta":
+                meta = payload if isinstance(payload, dict) else {}
+                source = meta.get("source")
+                if isinstance(source, dict) and "subagent" in source:
+                    skip_session = True
+                    break
+
+            ts_ms = iso_to_ms(entry.get("timestamp"))
+            in_range = ts_ms is not None and start_ms <= ts_ms <= end_ms
+            if in_range:
+                timestamps.append(ts_ms)
+
+            if not in_range:
+                continue
+            if entry.get("type") != "response_item":
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if payload.get("type") != "message" or payload.get("role") != "user":
+                continue
+
+            text = keep_user_text(extract_text(payload.get("content", "")))
+            if text:
+                user_messages.append(text)
+
+    if skip_session or not timestamps:
+        continue
+
+    sid = meta.get("id") or path.stem.split("-")[-1]
+    cwd = meta.get("cwd", "unknown")
+    project_name = os.path.basename(cwd) if cwd != "unknown" else "unknown"
+    thread_name = thread_names.get(sid, "")
+    items.append((min(timestamps), max(timestamps), project_name, thread_name, user_messages))
+
+if not items:
+    print("(no sessions found)")
+else:
+    for start, end, project_name, thread_name, user_messages in sorted(items, key=lambda item: item[0]):
+        label = f"{project_name}"
+        if thread_name:
+            label += f" / {thread_name}"
+        print(f"[{local_hhmm(start)}-{local_hhmm(end)}] {label} ({len(user_messages)} msgs)")
+        for msg in user_messages[:8]:
+            print(f"  - {msg}")
+        if len(user_messages) > 8:
+            print(f"  ... and {len(user_messages) - 8} more messages")
+        print()
+PYEOF
+else
+  echo "(~/.codex/sessions not found)"
+  echo ""
+fi
+
+# ---------------------------------------------------------------------------
 # 4. Section 2: Git Commits
 # ---------------------------------------------------------------------------
 echo "=== GIT COMMITS ==="
@@ -209,6 +355,42 @@ with open('$HISTORY_FILE') as f:
                 print(p)
         except: pass
 ")
+fi
+
+# Add project paths observed in Codex sessions.
+if [[ -d "$CODEX_SESSIONS_DIR" ]]; then
+  while IFS= read -r proj; do
+    if [[ -d "$proj/.git" ]]; then
+      PROJECT_PATHS+=("$proj")
+    fi
+  done < <(CODEX_SESSIONS_DIR="$CODEX_SESSIONS_DIR" python3 - << 'PYEOF'
+import json
+import os
+from pathlib import Path
+
+seen = set()
+for path in Path(os.environ["CODEX_SESSIONS_DIR"]).rglob("*.jsonl"):
+    with open(path) as f:
+        for line in f:
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if entry.get("type") != "session_meta":
+                continue
+            payload = entry.get("payload", {})
+            if not isinstance(payload, dict):
+                continue
+            source = payload.get("source")
+            if isinstance(source, dict) and "subagent" in source:
+                break
+            cwd = payload.get("cwd")
+            if cwd and cwd not in seen:
+                seen.add(cwd)
+                print(cwd)
+            break
+PYEOF
+)
 fi
 
 # Add hardcoded extra repos
@@ -262,9 +444,17 @@ fi
 echo "=== NOTION TASKS ==="
 echo ""
 
-NOTION_SCRIPT="$HOME/.claude/skills/notion-lifeos/scripts/query-tasks.sh"
+NOTION_SCRIPT=""
+for candidate in \
+  "$HOME/.agents/skills/notion-lifeos/scripts/query-tasks.sh" \
+  "$HOME/.claude/skills/notion-lifeos/scripts/query-tasks.sh"; do
+  if [[ -x "$candidate" ]] || [[ -f "$candidate" ]]; then
+    NOTION_SCRIPT="$candidate"
+    break
+  fi
+done
 
-if [[ -x "$NOTION_SCRIPT" ]] || [[ -f "$NOTION_SCRIPT" ]]; then
+if [[ -n "$NOTION_SCRIPT" ]]; then
   if [[ "$DATE_ARG" = "24h" ]]; then
     # Query both yesterday and today
     YESTERDAY=$(date -v-1d +%Y-%m-%d)

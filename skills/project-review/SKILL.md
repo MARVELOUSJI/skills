@@ -37,7 +37,7 @@ If it doesn't exist, fall through to Phase 1b (auto-discovery).
 - docs/strategy/meetings/
 
 ## Experiments
-- .claude/knowledge/experiments.md
+- docs/knowledge/experiments.md or .claude/knowledge/experiments.md
 
 ## Progress
 - HANDOFF.md
@@ -57,7 +57,7 @@ Search the following paths, excluding `third_party/`, `node_modules/`, `.venv/`,
 | Related Work | `_index.md` or all `.md` under `docs/strategy/related-work/` | Related work coverage |
 | Decisions | `docs/strategy/decisions/log.md` → `docs/strategy/decisions/` → `docs/adr/` | Decision records |
 | Meetings | 2 most recent `.md` under `docs/strategy/meetings/` (exclude `_template.md`) | Meeting notes |
-| Experiments | `.claude/knowledge/experiments.md` | Experiment log |
+| Experiments | `docs/knowledge/experiments.md` -> `.claude/knowledge/experiments.md` | Experiment log |
 | Progress | `HANDOFF.md` (project root) | Current progress |
 
 Use exact paths with sequential fallback — avoid `**/` recursive globs, which tend to match files under `third_party/` and produce noise.

@@ -2,7 +2,7 @@
 name: daily-summary
 description: >
   Use this skill to produce a daily/yesterday work summary or daily report (日报).
-  Aggregates Claude Code session history, Git commits across all repos, and Notion task
+  Aggregates Claude Code and Codex session history, Git commits across all repos, and Notion task
   completion data into a chronological timeline — this data collection CANNOT be done with
   git log alone. MUST invoke when the user asks what they did on a specific day, wants a
   daily recap, or needs a work report for any date.
@@ -30,8 +30,8 @@ Triggered by `/daily-summary` or conversational triggers. Arguments come from th
 
 | Dependency | Purpose | Check |
 |------------|---------|-------|
-| `collect-daily-data.sh` | Aggregates git log, Claude sessions, Notion tasks | Bundled in `scripts/` |
-| `notion-lifeos` skill | Notion task data (optional — skipped if missing) | `~/.claude/skills/notion-lifeos/` |
+| `collect-daily-data.sh` | Aggregates git log, Claude/Codex sessions, Notion tasks | Bundled in `scripts/` |
+| `notion-lifeos` skill | Notion task data (optional — skipped if missing) | `~/.agents/skills/notion-lifeos/` or `~/.claude/skills/notion-lifeos/` |
 | `git` | Commit history | Available on PATH |
 
 ## Execution Steps
@@ -86,5 +86,5 @@ Where `<skill-base-dir>` is the directory containing this SKILL.md (known at ski
 |-------|--------|
 | `collect-daily-data.sh` returns empty | Report "no activity found for this date" — don't generate an empty summary |
 | Notion tasks unavailable | Skip the Task Completion section, note it was skipped |
-| No git repos found | Skip git data, rely on Claude Code sessions only |
+| No git repos found | Skip git data, rely on Claude Code / Codex sessions only |
 | Date argument invalid | Default to `today`, warn user about invalid input |

@@ -1,18 +1,18 @@
 ---
 name: codex-review
-description: "Get a second opinion from OpenAI Codex on your plan or code changes. Automatically detects whether to do a plan review or code review based on context. Claude and Codex iterate back-and-forth until Codex approves (max 5 rounds). Use whenever you want cross-model verification before implementing a plan or merging code — especially for architecture decisions, non-trivial refactors, config changes in critical systems, or when you're unsure about an approach. Triggers: '/codex-review', 'codex review', 'second opinion', 'let codex check', 'cross-check this', '让 codex 看看', '交叉审查', 'review with codex'. NOT for: trivial one-line fixes, formatting-only changes, or when user explicitly declines review."
+description: "Get a second opinion from a separate read-only OpenAI Codex CLI session on your plan or code changes. Automatically detects whether to do a plan review or code review based on context. The current agent incorporates reviewer feedback and can re-submit until approved (max 5 rounds). Use whenever you want independent verification before implementing a plan or merging code — especially for architecture decisions, non-trivial refactors, config changes in critical systems, or when you're unsure about an approach. Triggers: '/codex-review', 'codex review', 'second opinion', 'let codex check', 'cross-check this', '让 codex 看看', '交叉审查', 'review with codex'. NOT for: trivial one-line fixes, formatting-only changes, or when user explicitly declines review."
 user_invocable: true
 ---
 
 # Codex Review
 
-A cross-model review skill that sends your plan or code diff to OpenAI Codex for independent verification. The value of cross-model review is that different models have different blind spots — Codex may catch issues that Claude misses, and vice versa.
+A review skill that sends your plan or code diff to a separate read-only OpenAI Codex CLI session for independent verification. When the current agent is Claude Code, this is cross-model review; when the current agent is Codex, this is still useful as an isolated second-pass reviewer with a fresh context and read-only sandbox.
 
 The skill operates in two modes (auto-detected):
 - **Plan Review**: when you have an implementation plan, Codex challenges it for completeness, risks, and alternatives
 - **Code Review**: when you have a git diff, Codex inspects the actual code for bugs, security issues, and edge cases
 
-In both modes, Claude doesn't just relay feedback — it actively revises the plan or proposes fixes based on Codex's input, then re-submits for re-review. This continues until Codex approves or 5 rounds are reached.
+In both modes, the current agent doesn't just relay feedback — it actively revises the plan or proposes fixes based on Codex's input, then re-submits for re-review. This continues until Codex approves or 5 rounds are reached.
 
 ## Prerequisites
 
@@ -60,7 +60,7 @@ Write the review content to `/tmp/codex-review-input-${REVIEW_ID}.md`:
 # Plan Review Request
 
 ## Project Context
-[2-3 lines from CLAUDE.md describing what the project does]
+[2-3 lines from AGENTS.md or CLAUDE.md describing what the project does]
 
 ## Implementation Plan
 [Full plan content from conversation context]
@@ -71,7 +71,7 @@ Write the review content to `/tmp/codex-review-input-${REVIEW_ID}.md`:
 # Code Review Request
 
 ## Project Context
-[2-3 lines from CLAUDE.md describing what the project does]
+[2-3 lines from AGENTS.md or CLAUDE.md describing what the project does]
 
 ## Summary
 [1-2 sentence summary of what these changes do and why]
@@ -164,7 +164,7 @@ Then branch:
 
 ## Step 5: Revise Based on Feedback
 
-This is where the skill earns its value — Claude doesn't just relay Codex's feedback, but thinks about it and acts.
+This is where the skill earns its value — the current agent doesn't just relay Codex's feedback, but thinks about it and acts.
 
 ### For Plan Review:
 - Update the plan to address each issue Codex raised
@@ -250,7 +250,7 @@ rm -f /tmp/codex-review-input-${REVIEW_ID}.md /tmp/codex-review-output-${REVIEW_
 
 ## Ground Rules
 
-- Claude **actively revises** based on feedback — not just a messenger between the user and Codex
+- The current agent **actively revises** based on feedback — not just a messenger between the user and the reviewer
 - Codex runs in **read-only** mode, always. It reviews but never writes files
 - **Max 5 rounds** prevents infinite loops. If 3+ rounds happen on the same issue, surface it to the user as a judgment call
 - **Show every round** to the user so they can follow the conversation and intervene
