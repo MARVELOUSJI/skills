@@ -40,7 +40,7 @@ Or trigger conversationally:
 Optionally specify a model:
 
 ```
-/codex-review gpt-5.4
+/codex-review gpt-5.5
 ```
 
 ## How It Works

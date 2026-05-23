@@ -40,7 +40,7 @@ npx skills add jiahao-shao1/sjh-skills --skill codex-review
 可选指定模型：
 
 ```
-/codex-review gpt-5.4
+/codex-review gpt-5.5
 ```
 
 ## 工作原理

@@ -47,7 +47,7 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
 
-## Current skills (12)
+## Current skills (14)
 
 **Cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills)** (MIT), adapted for MARVELOUSJI's research workflow in a proxy-constrained network environment + CMUX terminal + Clash Verge proxy (port 7897).
 
@@ -63,8 +63,10 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 | **project-review** | Strategic review — 5-dimension snapshot from vision/roadmap/decisions/meetings docs | none |
 | **remote-cluster-agent** | Remote GPU cluster operations via persistent SSH + Go daemon (rca CLI) | Go 1.21+, mutagen, rca (built from this skill), SSH cluster access |
 | **scholar-agent** | Scholar Inbox daily digest + filtering + deep-read integration with NotebookLM | `notebooklm-py`, `@playwright/cli` (npm), Scholar Inbox session cookie |
+| **scholar-profile** | Public academic profile lookup plus scholar relationship graph updates | web access, public profile/CV pages |
 | **sync-docs** | Check if docs need updating after recent code changes | none |
 | **web-fetcher** | Fetch any URL as clean markdown; routes login-required platforms through OpenCLI, generic through Jina Reader | `@jackwener/opencli` (npm) + Chrome extension, Clash Verge proxy for Jina |
+| **wrap-up** | Freeze a paused feature into cleanup notes plus recoverable project context docs | none |
 
 All external deps are installed by `~/workspace/dotfiles/scripts/install-skill-deps.sh`. Manual interactive logins (Google/NotebookLM, Scholar Inbox cookie, OpenCLI Chrome extension load, rca cluster config) documented in that script's output.
 
