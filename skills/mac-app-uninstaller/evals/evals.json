@@ -1,0 +1,23 @@
+{
+  "skill_name": "mac-app-uninstaller",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想把 Mac 上的“自动切换输入法”删干净。你先不要动，先帮我找它装在哪些地方并列清理方案。",
+      "expected_output": "The agent should trigger the skill, do only read-only discovery, classify findings, and present a Trash-based cleanup plan that waits for confirmation.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我之前装了非正版豆包输入法，现在准备装正版。帮我先定位旧版本残留，列出移动到废纸篓的方案，等我确认再执行。",
+      "expected_output": "The agent should treat this as a macOS app/input method cleanup, inspect app bundles and bundle IDs, separate confirmed leftovers from ambiguous ByteDance/Doubao matches, and avoid deleting anything before confirmation.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我清理这个 repo 里的旧实验输出和 Python 缓存，删掉不需要的 _out 文件。",
+      "expected_output": "The skill should not trigger. This is project/repository cleanup rather than macOS application uninstallation.",
+      "files": []
+    }
+  ]
+}

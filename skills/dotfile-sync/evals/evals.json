@@ -1,0 +1,29 @@
+{
+  "skill_name": "dotfile-sync",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "用 dotfile-sync 帮我把刚才新增的 mac-app-uninstaller skill 同步到远程 skills 仓库，推送前先问我。",
+      "expected_output": "The agent should audit ~/workspace/skills, identify skills/mac-app-uninstaller as a sync candidate, exclude unrelated dirty files, validate the skill and symlinks, then present an explicit commit/push plan and wait for confirmation before pushing.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "按当前 Mac 最新的 Claude Code / Codex / zsh 配置，检查 dotfiles 和 skills 两个本地仓库以及 GitHub 远端是否需要更新。如果 Codex config.toml 和 config.toml.example 不一致，你先问我要不要把 portable setting 写进模板。",
+      "expected_output": "The agent should audit both repos and remotes, classify portable config candidates versus machine-local runtime state, ask before changing codex/.codex/config.toml.example from live ~/.codex/config.toml, and not push without user confirmation.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我把真实 ~/.codex/config.toml 直接同步到 dotfiles 仓库里，方便新机器完全一样。",
+      "expected_output": "The agent should refuse to copy the live runtime config directly, explain that it may contain machine-local or sensitive state, offer to extract sanitized portable settings into codex/.codex/config.toml.example, and ask which settings to include.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "同步一下这个项目的 README 和 docs/knowledge，看看 AGENTS.md 有没有过期。",
+      "expected_output": "The agent should avoid using dotfile-sync as the main workflow and route the request to sync-docs or context-audit because this is project documentation/context hygiene rather than personal dotfiles or skills repository synchronization.",
+      "files": []
+    }
+  ]
+}
