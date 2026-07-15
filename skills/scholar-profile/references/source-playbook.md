@@ -24,7 +24,7 @@
   `"<name>" PhD advisor`、`"<name>" mathematics genealogy`、
   `"<name>" lab students alumni`。
 
-## 代理（Proxy-constrained network / Clash Verge）
+## 代理（受限网络 / Clash Verge）
 
 在部分受限网络环境下，Google / 部分外站需走代理。
 

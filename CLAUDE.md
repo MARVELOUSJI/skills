@@ -6,7 +6,7 @@ This file is **auto-loaded** when a Claude Code session opens in this repo, and 
 
 ## What this repo is
 
-The **source of truth** for all personal skills. 14 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained research + Clash Verge proxy on port 7897).
+The **source of truth** for all personal skills. 16 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained network support through Clash Verge on port 7897).
 
 Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) — environment, tools, activation scripts.
 
@@ -93,16 +93,16 @@ git push
 - Bumping or changing external dep versions in `install-skill-deps.sh` (may break other skills sharing the dep)
 
 ### Never
-- **Hardcode user/machine paths** — no `/Users/<name>`, `/Users/<name>`, `/ssd0/<x>`. Use `$HOME` or `~`. (Context for remote targets: if the skill SSH-executes on cluster, `~` on remote ≠ `~` locally. Be explicit.)
+- **Hardcode user/machine paths** — no concrete paths such as `/Users/<name>` or `/ssd0/<name>`. Use `$HOME` or `~`. (Context for remote targets: if the skill SSH-executes on cluster, `~` on remote ≠ `~` locally. Be explicit.)
 - **Commit secrets** — API keys, tokens, cookies, session states. They live outside this repo (`~/.env` in dotfiles, `~/.scholar-inbox/`, `~/.notebooklm/`, etc.).
 - **Hardcode proxy port other than 7897** — user runs Clash Verge on port 7897. Previous upstream bug: author's skills had port 7890 hardcoded in ~10+ places. All fixed during cherry-pick; don't re-introduce.
-- **Publish private repo content inappropriately** — this is a *private* repo. Content may reveal proprietary prompts, strategy templates, internal information.
+- **Commit private or proprietary content** — this repository is public-facing. Keep unpublished project details, identity-sensitive information, internal infrastructure, and proprietary prompts out of every tracked file and commit.
 - **Assume specific Python / Node version** — scripts should check `command -v` before using tools.
 - **Create a new standalone script** when an existing one can be extended — if your new skill's install logic fits `install-skill-deps.sh` scope, append there.
 
 ## Proxy awareness (important context)
 
-The user may work in a proxy-constrained network environment. Services like `r.jina.ai`, OpenAI API, sometimes GitHub raw files are slow/blocked without Clash Verge proxy (SOCKS5 127.0.0.1:7897).
+The user may work in a proxy-constrained network environment. Services like `r.jina.ai`, OpenAI API, and sometimes GitHub raw files may be slow or blocked without Clash Verge proxy (SOCKS5 127.0.0.1:7897).
 
 - User's `cc` / `cct` / `cx` aliases (in `dotfiles/zsh/.zshrc.shared`) inline-export `http_proxy` / `https_proxy` / `all_proxy` before launching agents, so terminal-launched agents inherit proxy env. Codex App may have a different environment; prefer checking env before assuming network access.
 - Skills using Python `httpx` / `requests` / `urllib` will inherit those env vars automatically
@@ -125,7 +125,7 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 ## Upstream (sjh-skills) parity
 
 - Still have read-only clone at `~/workspace/sjh-skills/` (author's repo). Future cherry-picks: `cp -r ~/workspace/sjh-skills/skills/<name> ~/workspace/skills/skills/`
-- When cherry-picking, scan for hardcoded author values: `grep -rn "7890\|/Users/<name>\|/ssd0/<name>\|<upstream-identifier>" ~/workspace/skills/skills/<name>` — fix any hits
+- When cherry-picking, scan for non-portable proxy ports and concrete user paths: `grep -rnE "7890|/Users/[^/]+|/ssd[0-9]+/[^/]+" ~/workspace/skills/skills/<name>` — inspect and fix any hits
 - Commit message convention for cherry-picks: `feat: cherry-pick <name> from jiahao-shao1/sjh-skills`
 - Commit message for upstream bug fixes: `fix(<name>): <what-was-wrong>` (example: `fix(scholar-agent): 修正 playwright-cli npm 包名` for the @anthropic-ai → @playwright/cli rename)
 
@@ -140,7 +140,7 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 | codex-review | `codex` CLI + OpenAI creds |
 | cmux | `cmux` CLI (bundled with cmux.app) |
 | daily-summary | (optional) Notion integration — currently skipped, auto-degrades gracefully |
-| Others (handoff / init-project / context-audit / sync-docs / project-review) | Pure agent instructions, no external deps |
+| Others (handoff / init-project / context-audit / sync-docs / project-review / dotfile-sync / mac-app-uninstaller) | Pure agent instructions, no external deps |
 
 See `~/workspace/dotfiles/scripts/install-skill-deps.sh` for the canonical install flow.
 

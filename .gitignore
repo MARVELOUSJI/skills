@@ -9,3 +9,13 @@ scholar-profile-workspace/
 # python bytecode
 __pycache__/
 *.pyc
+
+# local credentials and browser/session state
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+**/session.json
+**/cookies.json

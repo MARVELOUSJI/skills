@@ -47,9 +47,9 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
 
-## Current skills (14)
+## Current skills (16)
 
-**Cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills)** (MIT), adapted for MARVELOUSJI's research workflow in a proxy-constrained network environment + CMUX terminal + Clash Verge proxy (port 7897).
+**Cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills)** (MIT), adapted for MARVELOUSJI's research workflow, CMUX terminal, and proxy-constrained network environment (Clash Verge port 7897).
 
 | Skill | Use-case | Notable external deps |
 |---|---|---|
@@ -57,8 +57,10 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 | **codex-review** | Iterative cross-model review: Claude sends plan/diff to OpenAI Codex for critique (max 5 rounds) | `codex` CLI (npm), proxy for OpenAI API |
 | **context-audit** | Audit project's 3-layer context architecture (CLAUDE.md / rules / knowledge) for progressive-disclosure health | none (pure Claude logic) |
 | **daily-summary** | Aggregate Claude sessions + git commits (optionally Notion) into daily timeline report | none (Notion is optional) |
+| **dotfile-sync** | Safely synchronize portable Claude Code, Codex, shell, and personal skill configuration | none (pure agent logic) |
 | **handoff** | Structured conversation handoff summary for next session | none |
 | **init-project** | Scaffold new project with Claude Code best-practices (CLAUDE.md, rules/, knowledge/) | none |
+| **mac-app-uninstaller** | Audit and safely remove macOS apps and their leftovers with confirmation | standard macOS tools |
 | **paper-analyzer** | Deep critical analysis of specific academic papers via NotebookLM | `notebooklm-py` (pipx), `playwright` + chromium |
 | **project-review** | Strategic review — 5-dimension snapshot from vision/roadmap/decisions/meetings docs | none |
 | **remote-cluster-agent** | Remote GPU cluster operations via persistent SSH + Go daemon (rca CLI) | Go 1.21+, mutagen, rca (built from this skill), SSH cluster access |
@@ -148,11 +150,11 @@ Skill `description` should err towards **NOT triggering**. A skill that auto-fir
 
 ### Proxy-aware by default
 
-Proxy-constrained network / Clash Verge context (port 7897): any skill that hits foreign services (Google, OpenAI, Jina Reader) should either (a) work through pre-set `http_proxy` env vars, or (b) detect unreachable service and fail gracefully with "check your proxy" message. Hardcoding `http://127.0.0.1:7890` (wrong port) or anywhere is forbidden — refer to existing skills' patterns.
+Proxy-constrained network context (Clash Verge port 7897): any skill that hits foreign services (Google, OpenAI, Jina Reader) should either (a) work through pre-set `http_proxy` env vars, or (b) detect unreachable service and fail gracefully with "check your proxy" message. Hardcoding a different proxy port is forbidden — refer to existing skills' patterns.
 
 ### No hardcoded user paths
 
-No `/Users/<name>/` or `/Users/<name>/` in any skill file. Use `$HOME` / `~` when generating paths at runtime. See cmux skill (fixed during cherry-pick from sjh-skills — all 7890 → 7897 proxy fixes are in commit history).
+No concrete user-specific paths such as `/Users/<name>/` or `/ssd0/<name>/` in any skill file. Use `$HOME` / `~` when generating paths at runtime. See the cmux skill for portable path and proxy patterns.
 
 ### No secrets in repo
 
@@ -181,7 +183,7 @@ Skills cherry-picked from sjh-skills preserve upstream README / LICENSE referenc
 - Hardcode personal paths (`$HOME` / `~` instead)
 - Commit API keys / tokens / cookies (use `~/.env` outside repo)
 - Assume specific user OS or Python / Node version (scripts should check `command -v`)
-- Publish this repo content inappropriately — MARVELOUSJI/skills is **private**; assume content may include proprietary prompts, strategy templates, etc.
+- Commit private, proprietary, unpublished, or identity-sensitive content — assume every tracked file and commit will be publicly visible.
 
 ## Credits
 
