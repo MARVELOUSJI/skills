@@ -2,11 +2,11 @@
 
 <!--
 Replace this example with your own research hypothesis.
-The skill reads this file before analysis and applies Step 5
-(Research Framework Mapping) to connect each paper's findings
-to your theoretical framework.
+When copied to `hypothesis.md`, the skill reads it after the standalone
+paper analysis and applies the optional Research Framework Mapping module
+to connect the paper's findings to your theoretical framework.
 
-Delete this file or leave it empty to skip Step 5.
+Do not create `hypothesis.md` when framework mapping is unnecessary.
 -->
 
 ## Example: H1 — Chain-of-Thought Doesn't Improve Faithfulness

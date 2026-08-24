@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-> 为新项目一键配置 Claude Code 最佳实践：目录骨架、Agent、Hooks 和 CLAUDE.md。
+> 为新项目一键配置 Claude Code / Codex 共用上下文：目录骨架、Agent、Hooks、CLAUDE.md 和 AGENTS.md 兼容入口。
 
 ## 快速开始
 
@@ -54,6 +54,7 @@ Claude Code 会自动触发该 skill，引导你完成配置。
 | `.claude/agents/planner.md` | 代码库研究，用于 brainstorming/planning 阶段（`permissionMode: plan`） |
 | `.claude/settings.json` | PostToolUse hook 注册（`Edit`/`Write` + `Bash` matcher） |
 | `CLAUDE.md` | 项目说明骨架（含占位符待填充） |
+| `AGENTS.md` | 指向 `CLAUDE.md` 的软链接，供 Codex 原生发现 |
 
 ### Phase 2: 交互式填充 CLAUDE.md
 
@@ -69,6 +70,7 @@ Claude Code 会自动触发该 skill，引导你完成配置。
 | 目录结构和功能 | ls + 读关键文件 docstring | "以下目录结构对吗？有遗漏要调整的吗？" |
 | 开发工作流 | 检测 CI、Makefile、scripts/ | "用默认的 brainstorming→plans→dev→verify 流程？" |
 | 开发指南 | 检测 venv、.env、Dockerfile | "环境配置有什么特殊步骤？" |
+| Context Loading | 扫描 `.claude/rules/*.md` 的摘要 | "确认精简的任务领域 → rule 路由表？" |
 | Always Do（项目特定） | 读已有 rules/、lint 配置 | "有哪些跨模块一致性要求？" |
 | Ask First | 扫描核心文件（接口、配置） | "哪些文件/目录修改前必须先确认？" |
 | Never Do | 检测 third_party/、.env | "有哪些绝对不能碰的约定？" |
@@ -84,9 +86,11 @@ Claude Code 会自动触发该 skill，引导你完成配置。
 
 Research profile 额外添加：
 - `docs/reports/weekly/`、`docs/reports/worktree/`、`docs/plans/` 目录
-- `docs/experiment-registry/registry/` — 基于 YAML 的实验注册表，由 `exp-registry` CLI 管理（`pip install exp-registry`）
+- `docs/experiment-registry/registry/` — 基于 YAML 的实验注册表，由个人 Skills 依赖安装脚本提供的 `exp-registry` CLI 管理
+- `docs/paper-results/` — 论文 canonical 数值清单、校验脚本和 LaTeX macro 生成
+- `scripts/analysis/` 与 `scripts/monitoring/`
 - `.claude/agents/domain-expert.md` — 领域专家 Agent 骨架（`memory: project`、`permissionMode: plan`）
-- CLAUDE.md 追加研究相关 section
+- CLAUDE.md 追加精简的研究相关 section
 
 新 profile 通过 `scripts/init-<profile>-profile.sh` + `details/<profile>-profile.md` 添加。
 

@@ -261,6 +261,48 @@ Press Enter to skip / type additional items.
 
 ---
 
+## Section: Context Loading (Routing Table)
+
+### Auto-exploration
+
+```
+List: all .md files in .claude/rules/
+For each rule, scan the opening summary and scope
+Map: each rule → 1–3 task-domain keywords
+```
+
+### User Confirmation
+
+```
+CLAUDE.md has a compact Context Loading routing table. Here is a draft mapping
+from task domains to `.claude/rules/*.md` files:
+
+| Task domain | Read first |
+|---|---|
+{auto-generated rows: domain → rule path}
+
+Claude Code and Codex must not assume `.claude/rules/` is already expanded into
+their context. Confirm or edit the domain labels, or reply "skip" to keep the
+table empty.
+```
+
+### Draft Template
+
+```markdown
+| Task domain | Read first |
+|---|---|
+| Training / reward / config | `.claude/rules/training.md` |
+| Evaluation / benchmark protocol | `.claude/rules/testing.md` |
+| Cluster operations / remote execution | `.claude/rules/cluster-ops.md` |
+| Paper figures / writing | `.claude/rules/paper-figures.md` |
+```
+
+Keep this table compact and list rule files only. Detailed procedures and
+knowledge-file indexes remain in rules or `docs/knowledge/` and are loaded
+on demand.
+
+---
+
 ## Section: Progressive Disclosure Setup
 
 ### Auto-exploration

@@ -2,10 +2,10 @@
 
 <!--
 Replace this example with your own classification framework.
-The skill reads this file and applies Step 4.5 (Tri-dimensional Tagging)
-to categorize each analyzed paper.
+When copied to `taxonomy.md`, the skill applies the optional
+Tri-dimensional Tagging module after the standalone paper analysis.
 
-Delete this file or leave it empty to skip tagging.
+Do not create `taxonomy.md` when tagging is unnecessary.
 -->
 
 ## Example: CoT Faithfulness Research

@@ -6,7 +6,7 @@ This file is **auto-loaded** when a Claude Code session opens in this repo, and 
 
 ## What this repo is
 
-The **source of truth** for all personal skills. 16 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained network support through Clash Verge on port 7897).
+The **source of truth** for all personal skills. 17 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained network support through Clash Verge on port 7897).
 
 Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) — environment, tools, activation scripts.
 
@@ -133,8 +133,9 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 
 | Skill | External deps |
 |---|---|
-| paper-analyzer, scholar-agent (shared) | `notebooklm-py` via pipx + playwright chromium |
+| paper-analyzer (optional), scholar-agent (shared) | `notebooklm-py` via pipx + Playwright Chromium |
 | scholar-agent (additional) | `@playwright/cli` via npm + Scholar Inbox session cookie |
+| experiment-registry | `exp-registry` CLI via pipx from the pinned upstream GitHub package |
 | web-fetcher | `@jackwener/opencli` via npm + OpenCLI Chrome extension |
 | remote-cluster-agent | Go 1.21+, mutagen, compiled `rca` binary at `~/go/bin/rca`, `~/.config/rca/config.toml` with cluster SSH nodes |
 | codex-review | `codex` CLI + OpenAI creds |

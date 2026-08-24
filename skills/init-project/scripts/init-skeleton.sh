@@ -515,6 +515,18 @@ When a long session is ending or context is near its limit, use \`/handoff\` to 
 <!-- - Modify immutable interface signatures -->
 <!-- - Guess cluster configuration or hardware topology -->
 
+## Context Loading
+
+Claude Code and Codex must not assume files under \`.claude/rules/\` have
+already been expanded into the current context. Use this compact routing table
+to decide which rule to read before a domain-specific task:
+
+| Task domain | Read first |
+|---|---|
+<!-- init-project: placeholder — map task domains to .claude/rules/*.md -->
+
+Keep detailed procedures and knowledge-file indexes out of this table.
+
 ## Knowledge Discovery
 
 Experience records live in \`docs/knowledge/\`. Rather than maintaining a centralized lookup table here, each rule file in \`.claude/rules/\` references relevant knowledge files inline:

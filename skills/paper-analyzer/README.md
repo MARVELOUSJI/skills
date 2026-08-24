@@ -2,15 +2,17 @@
 
 English | [中文](README.zh-CN.md)
 
-> Deep critical analysis of academic papers — causal chain methodology (phenomenon, setup, attribution, solution), NotebookLM-grounded reading, optional research framework mapping.
+> Deep-read one paper with a three-pass workflow: build the map, understand Motivation → Task/Setting → Method → Experiments, then audit whether the evidence supports the claimed Contribution/Novelty.
 
 ## Features
 
-- **Structured methodology** — Not summarization, but dissecting claims vs. evidence
-- **Causal chain analysis** — 现象→实验设置→归因→解法, exposing logical gaps between what a paper shows and what it claims
-- **NotebookLM-grounded** — Every paper analyzed goes through NotebookLM for source-grounded Q&A (~500 tokens/query vs ~50K/PDF)
-- **Research framework mapping** — Optional step connecting paper findings to your own hypothesis
-- **Key number extraction** — Precise definitions, denominators, and comparison anchors for every metric
+- **Three-pass reading** — orientation → structured understanding → evidence audit
+- **Reader-centered backbone** — Motivation → Task/Setting → Method → Experiments → Contribution/Novelty
+- **Experiment–claim matrix** — Explain what every main experiment tests, how it tests it, and how much the result supports
+- **Three novelty levels** — Separate author claims, internally demonstrated contributions, and externally verified novelty
+- **Evidence grounding** — Link headline numbers and capability claims to pages, sections, tables, or figures
+- **Concise output** — Lead with plain-language conclusions and move full numbers and locators to an evidence appendix
+- **Flexible sources** — Local PDFs, full-text URLs, arXiv, and optional NotebookLM
 
 ## Install
 
@@ -18,47 +20,61 @@ English | [中文](README.zh-CN.md)
 npx skills add jiahao-shao1/sjh-skills --skill paper-analyzer
 ```
 
-## Prerequisites
+## Optional Dependency
 
-- [notebooklm-py](https://github.com/teng-lin/notebooklm-py) installed (`pipx install "notebooklm-py[browser]"`)
-- NotebookLM Google login completed (`notebooklm login`)
+Direct reading needs only the agent's PDF, file, and web tools. NotebookLM mode additionally requires:
+
+- [notebooklm-py](https://github.com/teng-lin/notebooklm-py): `pipx install "notebooklm-py[browser]"`
+- A valid NotebookLM Google login: `notebooklm login`
 
 ## Usage
 
+```text
+Analyze paper 2603.14821 in depth
+What are this paper's motivation, setting, and method?
+Explain what each experiment tests and whether the result supports the conclusion
+Is the claimed novelty actually supported by prior work?
+Deep-read ./papers/example.pdf and verify the headline numbers
+Cross-check this paper with NotebookLM
 ```
-"analyze this paper: 2603.14821"
-"deep dive into this paper"
-"分析这篇论文"
-"what does this paper really show?"
-```
 
-## How It Works
+## Workflow
 
-1. **Obtain paper** — Add to NotebookLM via arXiv HTML/abstract URL
-2. **Deconstruct narrative** — Map the authors' motivation, core claim, evidence structure, and acknowledged limitations
-3. **Extract key numbers** — Precise definitions and values for every core metric, formatted as tables
-4. **Causal chain analysis** — The core output:
-   - **现象** (Phenomenon) — What did they observe? What's surprising?
-   - **实验设置** (Setup) — How did they observe it?
-   - **归因** (Attribution) — Why do they think this happens?
-   - **解法** (Solution) — What do they propose, and does it address the attributed cause?
-5. **Framework mapping** (optional) — Connect findings to your research hypothesis via `references/hypothesis.md`
-6. **Cross-paper connections** (optional) — Structural analogues, complementary evidence, contradictions
+1. **Set depth and source** — Standard deep read by default; reproduction or review requests receive a stronger audit.
+2. **Pass one: build the map** — Identify paper type, research question, headline claim, and key figures/tables.
+3. **Pass two: understand** — Analyze Motivation, Task/Setting, Method, and Experiments in order.
+4. **Pass three: audit** — Check direct evidence, alternative explanations, generalization, and reproducibility.
+5. **Contribution and novelty** — Separate author claims, internal evidence, and external prior-work verification.
 
-## Configuration
+The causal chain (phenomenon → setup → attribution → solution), taxonomy tagging, research-framework mapping, and cross-paper connections are optional modules rather than the main report structure.
 
-### Research Framework (Optional)
+## Default Output
 
-Define your research hypothesis or theoretical lens in `references/hypothesis.md`. When present, Step 5 maps each paper's evidence to your framework and applies a "reverse challenge" — asking whether the paper's fix inadvertently proves your claims.
+The answer opens with at most six short takeaways: Motivation, Task, Method, core result, Contribution/Novelty, and main limitation. It then expands only the necessary Setting Card, experiment–claim matrix, critical audit, and evidence appendix.
+
+## Reading Modes
+
+- **Direct (default):** Read the original PDF or full-text page.
+- **NotebookLM-assisted:** Use when requested or for persistent Q&A; verify important conclusions in the paper itself.
+- **Dual verification:** Use for critical claims, complex tables/appendices, or explicit cross-checks.
+
+An abstract or metadata page is insufficient for a definitive deep analysis. When full text is unavailable, the skill marks substantive conclusions as unverified instead of guessing.
 
 ## When to Use vs. Scholar Agent
 
 | Task | Use |
-|------|-----|
-| Discover and filter today's papers | scholar-agent |
-| Deep-read a specific paper critically | paper-analyzer |
-| Add papers to NotebookLM for Q&A | scholar-agent |
-| Evaluate a paper against your hypothesis | paper-analyzer |
+|---|---|
+| Discover, filter, or collect papers | scholar-agent |
+| Deep-read one specific paper | paper-analyzer |
+| Explain experiments and evidence one by one | paper-analyzer |
+| Only add a paper to NotebookLM | scholar-agent |
+| Broad multi-paper literature survey | scholar-agent or a literature-research workflow |
+
+## Method References
+
+- [S. Keshav — How to Read a Paper](https://systems.cs.columbia.edu/ds2-class/papers/keshav-paper.pdf)
+- [PLOS — Ten Simple Rules for Reading a Scientific Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008032)
+- [NeurIPS Paper Checklist](https://neurips.cc/public/guides/PaperChecklist)
 
 ## License
 

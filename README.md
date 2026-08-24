@@ -47,7 +47,7 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
 
-## Current skills (16)
+## Current skills (17)
 
 **Cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills)** (MIT), adapted for MARVELOUSJI's research workflow, CMUX terminal, and proxy-constrained network environment (Clash Verge port 7897).
 
@@ -55,18 +55,19 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 |---|---|---|
 | **cmux** | Multi-pane / multi-agent terminal orchestration inside CMUX | `cmux` CLI (bundled with CMUX.app) |
 | **codex-review** | Iterative cross-model review: Claude sends plan/diff to OpenAI Codex for critique (max 5 rounds) | `codex` CLI (npm), proxy for OpenAI API |
-| **context-audit** | Audit project's 3-layer context architecture (CLAUDE.md / rules / knowledge) for progressive-disclosure health | none (pure Claude logic) |
+| **context-audit** | Audit cross-agent context reachability, stale/conflicting content, and rule slimming | none |
 | **daily-summary** | Aggregate Claude sessions + git commits (optionally Notion) into daily timeline report | none (Notion is optional) |
 | **dotfile-sync** | Safely synchronize portable Claude Code, Codex, shell, and personal skill configuration | none (pure agent logic) |
+| **experiment-registry** | Register, track, and compare ML experiments through a structured YAML registry | `exp-registry` CLI (pipx from upstream GitHub package) |
 | **handoff** | Structured conversation handoff summary for next session | none |
-| **init-project** | Scaffold new project with Claude Code best-practices (CLAUDE.md, rules/, knowledge/) | none |
+| **init-project** | Scaffold shared Claude Code / Codex project context, research structure, and paper-results provenance | none |
 | **mac-app-uninstaller** | Audit and safely remove macOS apps and their leftovers with confirmation | standard macOS tools |
-| **paper-analyzer** | Deep critical analysis of specific academic papers via NotebookLM | `notebooklm-py` (pipx), `playwright` + chromium |
+| **paper-analyzer** | Three-pass, evidence-grounded paper analysis from motivation through experiments and critical audit | none for direct analysis; optional `notebooklm-py` + Playwright Chromium |
 | **project-review** | Strategic review — 5-dimension snapshot from vision/roadmap/decisions/meetings docs | none |
 | **remote-cluster-agent** | Remote GPU cluster operations via persistent SSH + Go daemon (rca CLI) | Go 1.21+, mutagen, rca (built from this skill), SSH cluster access |
 | **scholar-agent** | Scholar Inbox daily digest + filtering + deep-read integration with NotebookLM | `notebooklm-py`, `@playwright/cli` (npm), Scholar Inbox session cookie |
 | **scholar-profile** | Public academic profile lookup plus scholar relationship graph updates | web access, public profile/CV pages |
-| **sync-docs** | Check if docs need updating after recent code changes | none |
+| **sync-docs** | Incrementally check whether recent code changes require doc updates, pruning, or rule migration | none |
 | **web-fetcher** | Fetch any URL as clean markdown; routes login-required platforms through OpenCLI, generic through Jina Reader | `@jackwener/opencli` (npm) + Chrome extension, Clash Verge proxy for Jina |
 | **wrap-up** | Freeze a paused feature into cleanup notes plus recoverable project context docs | none |
 

@@ -2,7 +2,7 @@
 
 English | [中文](README.zh-CN.md)
 
-> Bootstrap Claude Code configuration for new projects — directory skeleton, agents, hooks, and CLAUDE.md, all in one command.
+> Bootstrap shared Claude Code / Codex project context — directory skeleton, agents, hooks, a canonical CLAUDE.md, and AGENTS.md compatibility.
 
 ## Quick Start
 
@@ -54,6 +54,7 @@ Generated files:
 | `.claude/agents/planner.md` | Codebase researcher for brainstorming/planning phases (`permissionMode: plan`) |
 | `.claude/settings.json` | PostToolUse hook registration (`Edit`/`Write` + `Bash` matchers) |
 | `CLAUDE.md` | Project guide skeleton with placeholder sections |
+| `AGENTS.md` | Symlink to `CLAUDE.md` for Codex-native discovery |
 
 ### Phase 2: Interactive CLAUDE.md Fill
 
@@ -69,6 +70,7 @@ Read codebase (auto) → Generate draft (auto) → AskUserQuestion to confirm �
 | Directory structure | ls + key file docstrings | "Does this directory layout look correct?" |
 | Dev workflow | CI, Makefile, scripts/ | "Use the default brainstorming→plans→dev→verify flow?" |
 | Dev guide | venv, .env, Dockerfile | "Any special environment setup steps?" |
+| Context Loading | `.claude/rules/*.md` opening summaries | "Confirm the compact task-domain → rule routing table?" |
 | Always Do | rules/, lint config | "Any cross-module consistency requirements?" |
 | Ask First | core interfaces, config files | "Which files/dirs require confirmation before modifying?" |
 | Never Do | third_party/, .env | "Any absolute don't-touch conventions?" |
@@ -84,9 +86,11 @@ Optionally layer additional project-type-specific structure on top of the base s
 
 The research profile adds:
 - `docs/reports/weekly/`, `docs/reports/worktree/`, `docs/plans/` directories
-- `docs/experiment-registry/registry/` — YAML-based experiment registry, managed by the `exp-registry` CLI (`pip install exp-registry`)
+- `docs/experiment-registry/registry/` — YAML-based experiment registry, managed by the `exp-registry` CLI from the personal skills dependency installer
+- `docs/paper-results/` — canonical paper-number manifest, validator, and LaTeX macro generator
+- `scripts/analysis/` and `scripts/monitoring/`
 - `.claude/agents/domain-expert.md` — domain expert agent scaffold (`memory: project`, `permissionMode: plan`)
-- Research-specific sections appended to CLAUDE.md
+- Compact research-specific sections appended to CLAUDE.md
 
 New profiles can be added via `scripts/init-<profile>-profile.sh` + `details/<profile>-profile.md`.
 

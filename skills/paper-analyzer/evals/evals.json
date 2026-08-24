@@ -1,0 +1,57 @@
+{
+  "skill_name": "paper-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请深度分析 Attention Is All You Need（arXiv:1706.03762）。我主要想知道 motivation、task/setting、method、每个主要实验验证了什么，以及 contribution 和 novelty。用中文，尽量简洁，但关键数字要有页码或表格定位。",
+      "expected_output": "A concise Chinese deep read following the reader-centered backbone, with a setting card, experiment–claim matrix, three-level novelty assessment, critical audit, and inspectable evidence locators.",
+      "files": [],
+      "expectations": [
+        "The response starts with concise takeaways covering motivation, task, method, core result, contribution/novelty, and the main limitation.",
+        "The main analysis follows Motivation, Task/Setting, Method, Experiments, Contribution/Novelty, and Critical Audit in that order.",
+        "Each headline experiment states the question being tested, comparison or controls, metric/result, actual support level, and a page/table/figure locator.",
+        "Novelty is separated into author-claimed, internally demonstrated, and externally verified or explicitly not checked.",
+        "The response distinguishes author claims from experimental support and agent inference."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "看一下 Deep Residual Learning for Image Recognition（arXiv:1512.03385），重点逐项解释主实验和 ablation 分别想验证什么、控制了什么、结果能支持到哪一步。不要写成长篇论文摘要。",
+      "expected_output": "An experiment-focused analysis that provides only enough motivation, setting, and method context to interpret a compact experiment–claim matrix and its evidence limitations.",
+      "files": [],
+      "expectations": [
+        "The response prioritizes the experiment–claim matrix instead of producing a section-by-section paper summary.",
+        "Main results and ablations are separated when they test different claims.",
+        "Every reported headline number includes its condition and an inspectable page/table/figure locator.",
+        "The analysis checks whether the comparisons isolate the claimed effect and notes any material confounder or missing control.",
+        "Secondary or repetitive appendix results are grouped rather than exhaustively enumerated."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我手上只有下面这个摘要，而且不要联网：We introduce SampleNet, a model that improves accuracy by 18% through adaptive sampling. Experiments on three datasets show consistent gains over strong baselines. 请按 paper-analyzer 给我做深度分析。",
+      "expected_output": "A guarded orientation-only response explaining that an abstract cannot support a definitive deep analysis, marking method, experiment, numeric, and novelty conclusions as unverified without inventing details or locators.",
+      "files": [],
+      "expectations": [
+        "The response clearly says that abstract-only evidence is insufficient for a definitive deep analysis.",
+        "The response may provide a provisional motivation/task/claim map but labels substantive conclusions unverified.",
+        "The response does not invent datasets, baselines, metrics, method details, page numbers, tables, or figures.",
+        "The claimed 18 percent improvement is not treated as verified because its metric, denominator, and conditions are missing.",
+        "The response remains concise and identifies exactly what full-text evidence would be needed next."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Attention Is All You Need 真的提出了全新的东西吗？请不要只复述作者的 novelty claim；查原始相关论文，区分作者声称、本文内部证明、以及外部文献核验后的 novelty。",
+      "expected_output": "A source-grounded novelty audit using primary prior papers or official proceedings, with three clearly separated novelty levels and no field-wide novelty claim based on the target paper alone.",
+      "files": [],
+      "expectations": [
+        "The response explicitly separates author-claimed novelty, internally demonstrated contribution, and externally verified novelty.",
+        "External novelty conclusions cite primary prior papers or official proceedings rather than relying on metadata or secondary summaries.",
+        "The response distinguishes new mechanism, new combination, scaling, and engineering integration where applicable.",
+        "The conclusion is scoped to the prior work actually checked and does not claim exhaustive field-wide novelty.",
+        "The response is concise and puts the bottom-line novelty judgment first."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {"query": "帮我深度分析 ~/papers/new_method.pdf，重点说 motivation、setting、method 和每个实验到底验证了什么", "should_trigger": true},
+  {"query": "这篇 arXiv:2504.01234 到底说明了什么？关键数字请给页码和表格位置", "should_trigger": true},
+  {"query": "critical read this paper and tell me whether its ablations actually support the mechanism claim", "should_trigger": true},
+  {"query": "这篇论文声称是 first work，我想知道它的 novelty 到底是不是真的，帮我查原始相关论文核验", "should_trigger": true},
+  {"query": "逐项解释这个 PDF 里的主实验、鲁棒性实验和消融实验分别想证明什么", "should_trigger": true},
+  {"query": "用 NotebookLM 和原始 PDF 双重核验这篇论文的 Table 2，看看作者结论有没有夸大", "should_trigger": true},
+  {"query": "我要复现 arXiv:2406.12345，先审计它的 setting、训练细节、指标、随机种子和计算资源是否完整", "should_trigger": true},
+  {"query": "分析这篇单篇论文是否支持我的假说：长推理会削弱视觉信息利用", "should_trigger": true},
+  {"query": "deep dive into https://arxiv.org/pdf/2303.04137 and map problem, design choices, experiments, and evidence gaps", "should_trigger": true},
+  {"query": "我在写 related work，只需要把这篇具体论文和我的方法逐项对比，结论要回到原文证据", "should_trigger": true},
+  {"query": "帮我找最近一个月视觉语言模型方向值得读的 20 篇论文", "should_trigger": false},
+  {"query": "把今天 scholar inbox 里的论文筛一遍，选三篇加入 NotebookLM", "should_trigger": false},
+  {"query": "用三句话快速总结一下这个摘要，不需要看全文", "should_trigger": false},
+  {"query": "把 /tmp/paper.pdf 的全文翻译成中英文对照 Markdown，并保留所有图片", "should_trigger": false},
+  {"query": "根据这篇论文做一个 20 页组会 PPT，要有演讲备注", "should_trigger": false},
+  {"query": "按 NeurIPS 审稿格式写一份完整 reviewer report，包括评分、置信度和接收建议", "should_trigger": false},
+  {"query": "把 DOI 10.1145/1234567 转成 BibTeX，并补全会议名称和页码", "should_trigger": false},
+  {"query": "写一段涵盖 30 篇工作的 related work，主题是视觉强化学习", "should_trigger": false},
+  {"query": "只把 arXiv:2401.12345 添加到我的 NotebookLM RL notebook，不需要分析", "should_trigger": false},
+  {"query": "从这个 PDF 提取全部表格为 CSV，保持原始单元格顺序", "should_trigger": false}
+]

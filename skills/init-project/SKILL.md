@@ -23,6 +23,7 @@ Automatically configure cross-agent project context for new projects: directory 
 3. **Phase 3: Profile Overlay** (optional)
    → Ask the user: "Want to overlay an additional profile? Currently supported: research"
    → If research selected → run `scripts/init-research-profile.sh`
+   → Research profile adds experiment metadata plus an optional paper-results manifest and validation/generation stubs
    → Profile details in `details/research-profile.md`
 
 4. **Output Summary**
@@ -38,6 +39,7 @@ Automatically configure cross-agent project context for new projects: directory 
 | Directory structure | ls + read key file docstrings | "Does this directory layout look correct? Anything to adjust?" |
 | Dev workflow | Detect CI, Makefile, scripts/ | "Use the default brainstorming→plans→dev→verify flow?" |
 | Dev guide | Detect venv, .env, Dockerfile | "Any special environment setup steps?" |
+| Context Loading | List `.claude/rules/*.md` and summarize each rule's trigger/domain | "Confirm the compact task-domain → rule routing table for Claude Code and Codex." |
 | Always Do (project-specific) | Read rules/, lint config | "Any cross-module consistency requirements?" |
 | Ask First | Scan core files (interfaces, config) | "Which files/dirs require confirmation before modifying?" |
 | Never Do | Detect third_party/, .env | "Any absolute don't-touch conventions?" |
@@ -50,6 +52,7 @@ Automatically configure cross-agent project context for new projects: directory 
 - **No existing content modification**: only `<!-- init-project: 待填充 -->` placeholders are touched
 - **Scripts run standalone**: `init-skeleton.sh` and `init-research-profile.sh` work independently of the skill
 - **Codex compatibility**: the skeleton creates `AGENTS.md -> CLAUDE.md`. If `AGENTS.md` already exists, never overwrite it; report whether it is a symlink to `CLAUDE.md` or a separate file that may need manual sync.
+- **Compact routing, not index leakage**: the canonical guide may map task domains to rule files so both agents know what to read, but detailed procedures and knowledge-file indexes stay out of the always-loaded guide.
 
 ## References
 

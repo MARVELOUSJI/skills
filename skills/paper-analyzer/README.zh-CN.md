@@ -2,15 +2,17 @@
 
 [English](README.md) | 中文
 
-> 论文深度批判分析 —— 因果链方法论（现象→实验设置→归因→解法），NotebookLM 溯源阅读，可选研究框架映射。
+> 用“三遍阅读 + 用户主线 + 证据审计”深读单篇论文：先建立全貌，再理解 Motivation、Task/Setting、Method 和 Experiments，最后判断 Contribution/Novelty 是否被证据支持。
 
 ## 功能
 
-- **结构化方法论** — 不是摘要，而是解剖论文的声明与证据
-- **因果链分析** — 现象→实验设置→归因→解法，暴露论文展示内容和声称内容之间的逻辑断层
-- **NotebookLM 溯源** — 每篇分析的论文都通过 NotebookLM 进行基于原文的问答（~500 tokens/次 vs ~50K/篇 PDF）
-- **研究框架映射** — 可选步骤，将论文发现与你自己的假说关联
-- **关键数字提取** — 每个指标的精确定义、分母、对比锚点
+- **三遍阅读**：快速建图 → 结构化理解 → 证据审计
+- **用户导向主线**：Motivation → Task/Setting → Method → Experiments → Contribution/Novelty
+- **实验—主张矩阵**：逐项说明每个主要实验想验证什么、如何验证、实际支持到什么程度
+- **三层新颖性**：区分作者声称、论文内部证明和外部文献核验
+- **证据定位**：关键数字和能力声明关联页码、章节、表格或图片
+- **简洁输出**：结论优先，正文易懂，完整数字与定位放到证据附录
+- **灵活读取**：支持本地 PDF、全文链接、arXiv 和可选 NotebookLM
 
 ## 安装
 
@@ -18,47 +20,61 @@
 npx skills add jiahao-shao1/sjh-skills --skill paper-analyzer
 ```
 
-## 前置条件
+## 可选依赖
 
-- [notebooklm-py](https://github.com/teng-lin/notebooklm-py) 已安装（`pipx install "notebooklm-py[browser]"`）
-- NotebookLM Google 登录已完成（`notebooklm login`）
+直接读取模式只需要 agent 可用的 PDF、文件和网页工具。NotebookLM 模式额外需要：
+
+- [notebooklm-py](https://github.com/teng-lin/notebooklm-py)：`pipx install "notebooklm-py[browser]"`
+- 有效的 NotebookLM Google 登录：`notebooklm login`
 
 ## 使用
 
+```text
+分析这篇论文：2603.14821
+这篇论文的 motivation、setting 和 method 分别是什么？
+逐项解释每个实验想验证什么，结果是否真的支持结论
+这篇论文声称的 novelty 到底成立吗？
+深读 ./papers/example.pdf，并核对关键数字
+用 NotebookLM 交叉核验这篇论文
 ```
-"分析这篇论文：2603.14821"
-"论文深度分析"
-"deep dive into this paper"
-"这篇论文到底说明了什么"
-```
 
-## 工作原理
+## 工作流
 
-1. **获取论文** — 通过 arXiv HTML/摘要 URL 添加到 NotebookLM
-2. **解构叙事** — 梳理作者的动机、核心声明、证据结构和已承认的局限性
-3. **提取关键数字** — 每个核心指标的精确定义和数值，表格呈现
-4. **因果链分析** — 核心输出：
-   - **现象** — 他们观察到了什么？有什么反直觉的？
-   - **实验设置** — 他们如何观察到的？
-   - **归因** — 他们认为为什么会这样？
-   - **解法** — 他们提出了什么方案，是否真的解决了归因的原因？
-5. **框架映射**（可选） — 通过 `references/hypothesis.md` 将发现与你的研究假说关联
-6. **跨论文关联**（可选） — 结构类比、互补证据、矛盾
+1. **确定深度与来源**：默认标准深读；复现或审稿请求会加强审计。
+2. **第一遍——快速建图**：识别论文类型、研究问题、核心主张和关键图表。
+3. **第二遍——结构化理解**：依次分析 Motivation、Task/Setting、Method 和 Experiments。
+4. **第三遍——证据审计**：检查主张是否有直接证据、是否存在替代解释，以及泛化和复现边界。
+5. **贡献与新颖性**：分别报告作者声称、论文内部证据和外部相关工作核验。
 
-## 配置
+因果链（现象→设置→归因→解法）、taxonomy、研究框架映射和跨论文连接均为按需模块，不再替代主工作流。
 
-### 研究框架（可选）
+## 默认输出
 
-在 `references/hypothesis.md` 中定义你的研究假说或理论框架。存在时，分析会将论文证据映射到你的框架，并进行"反向挑战"——询问论文的解法是否无意中证明了你的假说。
+开头用六句以内说明：Motivation、Task、Method、核心结果、Contribution/Novelty 和主要局限。随后按需展开 Setting Card、实验—主张矩阵、批判检查和证据附录。
+
+## 读取模式
+
+- **直接读取（默认）**：读取原始 PDF 或全文链接。
+- **NotebookLM 辅助**：适合用户明确要求或需要持续问答的场景；重要结论仍回到原文核验。
+- **双重核验**：用于关键结论、复杂表格/附录或明确的交叉检查。
+
+摘要或元数据页面不足以支持确定性的深度分析。缺少全文时会明确标注“未核验”，不会强行下结论。
 
 ## 何时用 vs. Scholar Agent
 
 | 任务 | 使用 |
-|------|------|
-| 发现和筛选今天的论文 | scholar-agent |
-| 深度批判分析一篇特定论文 | paper-analyzer |
-| 将论文添加到 NotebookLM 问答 | scholar-agent |
-| 评估论文与你的假说的关系 | paper-analyzer |
+|---|---|
+| 发现、筛选或收藏论文 | scholar-agent |
+| 深度分析一篇特定论文 | paper-analyzer |
+| 逐项解释实验与证据 | paper-analyzer |
+| 仅添加论文到 NotebookLM | scholar-agent |
+| 多篇论文的广泛综述 | scholar-agent 或文献调研流程 |
+
+## 方法参考
+
+- [S. Keshav — How to Read a Paper](https://systems.cs.columbia.edu/ds2-class/papers/keshav-paper.pdf)
+- [PLOS — Ten Simple Rules for Reading a Scientific Paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008032)
+- [NeurIPS Paper Checklist](https://neurips.cc/public/guides/PaperChecklist)
 
 ## 许可证
 

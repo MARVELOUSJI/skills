@@ -1,227 +1,179 @@
 ---
 name: paper-analyzer
-description: "Deep critical analysis of academic papers with structured methodology. Use this skill whenever the user wants to analyze a specific paper in depth — not just summarize it, but dissect its experimental setup, extract key numbers, evaluate its claims against a research hypothesis, and identify what the paper inadvertently proves. Triggers: 'analyze this paper', 'deep dive into', '分析这篇论文', '论文深度分析', arXiv ID with analysis intent, 'what does this paper really show', '这篇论文说明了什么', 'break down this paper', 'critical reading'. Also triggers when discussing related work and the user asks to look at a specific paper in detail. NOT for: paper discovery/filtering (use scholar-agent), quick summaries, literature surveys across many papers, or adding papers to NotebookLM."
+description: "Deep, source-grounded analysis of a specific academic paper from a local PDF, full-text URL, arXiv ID, or optional NotebookLM notebook. Use whenever the user wants to understand a paper beyond a summary: motivation and prior limitations, task/setting, method mechanism, what each experiment tests, contribution/novelty, exact page/table/figure-level evidence, claim-evidence gaps, reproducibility, or research-hypothesis mapping. Supports direct reading (default), NotebookLM assistance, and dual verification. Triggers include 'analyze/deep dive/critical read this paper', 'what does each experiment prove', 'is this paper really novel', '分析这篇论文', '论文深度分析', '每个实验验证什么', '这篇论文到底说明了什么', or a PDF/URL/arXiv ID with analysis intent. NOT for paper discovery/filtering (use scholar-agent), quick summaries, broad multi-paper literature surveys, formal journal-style referee reports when a reviewer workflow is available, citation formatting, or merely adding sources to NotebookLM."
 ---
 
 # Paper Analyzer
 
-A structured methodology for critical paper analysis. The goal is not summarization — it's understanding what a paper actually demonstrates (which may differ from what it claims), extracting the numbers that matter, and connecting findings to your research framework.
+Analyze one paper through three passes: orient first, understand the paper through the reader's questions, then audit whether the evidence supports the claims. The goal is a concise and understandable explanation of what the paper solves, how it works, what its experiments establish, and where the evidence stops.
 
-## When to Use
+## Operating Principles
 
-- User gives an arXiv ID, URL, or paper title and wants deep analysis
-- User is building a related work section and needs to understand a specific paper's contribution
-- User wants to evaluate whether a paper supports or challenges their hypothesis
+- Follow the user's reading backbone: **Motivation → Task/Setting → Method → Experiments → Contribution/Novelty**.
+- Keep source retrieval separate from interpretation. The original paper is the authority; generated retrieval is only an aid.
+- Prefer a short, layered answer. Put the conclusion first and evidence details later.
+- Distinguish what the authors claim, what the experiments demonstrate, and what you infer.
+- Do not force every paper into the same critique. Apply only checks that matter for the paper type and the user's goal.
 
-## Workflow
+## Step 1: Set Reading Depth and Obtain the Source
 
-### Step 1: Obtain the Paper and Set Up NotebookLM
+Infer the reading goal from the request instead of asking routinely:
 
-The primary reading channel is **NotebookLM** — it provides source-grounded answers from Gemini, handles tables/figures reliably, and supports iterative deep questioning. Every paper analyzed should end up in NotebookLM.
+- **Orientation**: use only when the user explicitly asks for a quick understanding or invokes this skill for a short read.
+- **Standard deep read**: default for analysis requests.
+- **Reproduction/review audit**: use when the user asks to reproduce, review, verify, challenge, or assess reliability.
 
-**If the user specifies a notebook ID** (e.g., "in notebook 9ef789c8"):
-```bash
-notebooklm use <notebook-id>
-notebooklm source list  # check if the paper is already a source
-```
+Accept a local PDF, full PDF/HTML URL, arXiv ID, DOI/publisher page with full text, or an existing NotebookLM source. An abstract or metadata page is enough for orientation but not for a definitive deep analysis. If full text remains unavailable, state the limitation and mark substantive conclusions **unverified**. Do not imitate a full deep-read report: give only a provisional paper map (normally no more than six bullets) and a short list of the evidence still needed.
 
-**If the paper is not yet in NotebookLM**, add it:
-```bash
-# Prefer arXiv HTML — it preserves equations, tables, and structure
-notebooklm source add "https://arxiv.org/html/<ID>"
-# If HTML unavailable, fall back to abstract page
-notebooklm source add "https://arxiv.org/abs/<ID>"
-```
+Use **Direct reading** by default. For local PDFs, extract text and inspect rendered pages when layout, equations, tables, or figures carry evidence. Use NotebookLM only when requested, when an existing notebook is supplied, or when persistent retrieval over long sources is useful. Use both channels for explicit cross-checks or difficult tables/appendices. Never upload unpublished, private, or proprietary material to a third party without explicit permission.
 
-If no notebook exists for this line of research, create one:
-```bash
-notebooklm create "Research Topic Name"
-notebooklm source add "https://arxiv.org/html/<ID>"
-```
+Preserve the exact paper version supplied by the user. If another version is found, report the difference rather than silently replacing it. Read `references/source-backends.md` only when NotebookLM, source acquisition, or version conflicts require operational detail.
 
-**Supplementary sources** (only when NotebookLM is insufficient):
-- Semantic Scholar API — for citation count, related papers, and metadata:
-  `https://api.semanticscholar.org/graph/v1/paper/ArXiv:<ID>?fields=title,abstract,year,citationCount,authors`
-- `/web-fetcher` on arXiv HTML — fallback if NotebookLM source processing fails
-- Direct PDF via the available file-reading tool — if the user provides a local path
+## Step 2: Pass One — Build the Paper Map
 
-**How to use NotebookLM during analysis**: Use `notebooklm ask` throughout all steps — for understanding the paper's narrative (Step 2), extracting numbers (Step 3), and verifying claims. Example questions:
+Scan the title, abstract, introduction, conclusion, section headings, figures/tables, and references before reading linearly. This pass prevents early details from hiding the paper's main logic.
 
-- Step 2: "What problem does this paper claim to solve, and what is their core hypothesis?"
-- Step 2: "Walk me through their evidence structure — what experiments support their main claim?"
-- Step 3: "What exact numbers does Table 3 show? Include all conditions and metrics."
-- Step 3: "How is [metric name] defined? What's the denominator?"
-- Step 4: "Does Section 4.2 actually control for X when making claim Y?"
-- Step 4: "Is the model checkpoint in Table 3 the same as in Table 5?"
+Determine:
 
-### Step 2: Deconstruct the Paper's Own Narrative
+1. **Paper type**: method, empirical study, theory, benchmark/dataset, system, review, or position paper.
+2. **Research question**: what the authors want to know or change.
+3. **Headline claim**: the main claim in one plain-language sentence.
+4. **Evidence map**: which figures, tables, proofs, or studies appear to support that claim.
+5. **Reading priority**: which sections need close inspection for the user's goal.
 
-Before applying any external framework, respect the authors' story. Map out:
+Treat the abstract as the authors' proposed story, not as verified evidence.
 
-1. **Motivation**: What problem do they claim to solve? What gap do they identify?
-2. **Core claim/hypothesis**: What's their main argument? (State it in one sentence)
-3. **Evidence structure**: How do they support the claim? (Experiments, ablations, theoretical analysis)
-4. **Proposed solution**: If they propose a method, what's the key mechanism?
-5. **Validation**: How do they measure success? What baselines do they compare against?
-6. **Limitations they acknowledge**: What do they say doesn't work or isn't covered?
+## Step 3: Pass Two — Understand the Paper Through the Reader's Backbone
 
-This step matters because jumping straight to criticism without understanding the paper on its own terms leads to shallow analysis. The interesting insights come from the gap between what a paper shows and what it claims to show — and you can only see that gap if you first understand the claims.
+### 3.1 Motivation
 
-### Step 3: Extract Key Numbers and Definitions
+Explain the chain **important problem → prior limitation or missing study → opportunity addressed here**.
 
-For every core metric the paper introduces or relies on:
-- **Name**: The metric/concept name
-- **Definition**: Precise definition including what the numerator and denominator are, how it's measured, and by whom (human? LLM judge? automatic?)
-- **Key values**: The actual numbers, with enough context (which model, which benchmark, which condition) to interpret them
-- **Comparison anchor**: How these numbers relate to prior work
+- Separate importance from novelty: an important problem is not automatically new.
+- Identify whether the gap is a capability limit, assumption, missing setting, weak evidence, efficiency issue, or unexplored question.
+- Check whether the paper supports its account of prior limitations with appropriate related work. Do not repeat a vague “few studies exist” claim as fact.
 
-Format as a table when there are multiple conditions:
+### 3.2 Task and Setting
 
-```markdown
-| Condition | Metric A | Metric B | Notes |
-|-----------|----------|----------|-------|
-| Baseline  | X%       | Y%       | ...   |
-| Proposed  | X'%      | Y'%      | ...   |
-```
+Create a compact Setting Card containing only relevant fields:
 
-The standard for definitions is: a reader should understand what the number means without looking at the original paper.
+- research task or question;
+- inputs, outputs, intervention, or system boundary;
+- data/population/environment and train-validation-test split when applicable;
+- supervision, assumptions, constraints, and allowed information;
+- baselines/comparators, metrics, and evaluation protocol.
 
-### Step 4: Write the Causal Chain Analysis
+Setting details define what the results mean. Compare results only when the underlying settings are genuinely comparable.
 
-This is the core output. The structure follows a causal reasoning chain — each section flows from the previous one:
+### 3.3 Method
 
-1. **现象**: What did they observe? What's the surprising or counterintuitive finding? Lead with the punchline.
-2. **实验设置**: How did they observe it? What experimental design, models, data, and metrics made this phenomenon visible? The setup serves the phenomenon, not the other way around.
-3. **归因**: Why do they think this happens? What's their causal explanation for the phenomenon?
-4. **解法**: Based on their attribution, what do they propose to fix it? What's the mechanism of the fix, and does it actually address the attributed cause?
+Explain the method as **problem → design choice → mechanism → expected effect**.
 
-```markdown
-### Paper-Name (arXiv-ID) — "one-line characterization"
+- Start with the central idea before components, formulas, or implementation details.
+- For each important component, state which limitation it addresses and why it should help.
+- Include a formula only when it is essential; explain its role in plain language immediately afterward.
+- Separate genuine conceptual changes from combinations, scaling, engineering, or presentation choices.
 
-**现象**：
-- The key experimental finding, with actual numbers
-- What's surprising or counterintuitive about it
-- Note: lead with what they *saw*, not what they *did*
+### 3.4 Experiments
 
-**实验设置**：Base model | Method | Data | Key metrics — how the above phenomenon was observed
+Read claim-bearing figures and tables closely. Inspect axes, units, denominators, comparison conditions, uncertainty, captions, and the methods needed to interpret them.
 
-**归因**：Authors' explanation for why the phenomenon occurs.
+For each main experiment, record:
 
-**解法**（if applicable）：Based on the attribution above, what they propose and how it addresses the cause.
-```
+**question/hypothesis → comparison and controlled variables → data/metric → result → authors' interpretation → actual support → evidence locator**
 
-The causal chain matters because it exposes logical gaps: if the 解法 doesn't actually follow from the 归因, or if the 归因 doesn't fully explain the 现象, that's where the interesting analysis lives.
+Give full rows to experiments that support headline contributions. Group auxiliary experiments when they repeat the same conclusion. Expand appendix experiments only when they change a conclusion, expose a limitation, or matter for reproduction.
 
-### Step 4.5: Tri-dimensional Tagging
+Use the experiment matrix in `references/analysis-template.md`. A result table without the question each experiment tests is incomplete.
 
-If a taxonomy is configured (i.e., `references/taxonomy.md` exists), add a tag line at the top of each paper's analysis, mapping it to the classification framework:
+## Step 4: Pass Three — Audit Claims and Evidence
 
-```markdown
-### Paper-Name (arXiv-ID) — "大白话一句话概括"
+### 4.1 Claim–Evidence Check
 
-> 📍 诊断：[用什么方法发现的] | 归因：[为什么会这样] | 修复：[怎么修的/没修]
-```
+For every headline claim, decide whether the paper provides:
 
-The tag line serves two purposes:
-1. **Reader navigation**: scanning 30+ papers by tags without reading each analysis
-2. **Gap detection**: if a category has no papers, that's an unexplored area
+- **direct support**: the design and evidence test the stated claim;
+- **partial support**: the evidence supports a narrower claim;
+- **unsupported interpretation**: the conclusion exceeds the evidence;
+- **unverified**: the source or required detail could not be located.
 
-If no taxonomy is configured, skip the tag line — Steps 1-4 already produce a complete analysis.
+Actively look for reasonable alternative explanations. For causal language, ask whether the design isolates the proposed cause rather than showing correlation only.
 
-### Step 5: Research Framework Mapping and Reverse Challenge
+### 4.2 Contribution and Novelty
 
-**Skip this step if** no research framework is configured (i.e., `references/hypothesis.md` doesn't exist). Steps 1-4 already produce a complete, standalone analysis.
+Report novelty at three distinct levels:
 
-If the user has defined a research framework — their own hypothesis, theoretical lens, or set of claims they're building evidence for — this step connects the paper's findings to that framework. The framework is stored in `references/hypothesis.md` and is entirely user-defined. It could be a hypothesis, a taxonomy, a set of open questions, or anything else that gives structure to a body of related work.
+1. **Author-claimed novelty**: what the paper says is new.
+2. **Internally demonstrated contribution**: what the paper's own analysis or experiments substantiate.
+3. **Externally verified novelty**: what remains new after comparison with relevant prior work.
 
-**Mapping**: How does this paper's evidence relate to the framework?
-- Does it support, challenge, or provide boundary conditions?
-- Is there evidence the authors didn't interpret this way, but that supports the framework?
-- What would this paper's findings look like if the framework's claims were true?
+A single paper cannot establish field-wide novelty by itself. Do not label novelty “externally verified” unless an external literature comparison was performed. If the user asks whether the work is *really* novel, search primary papers and official proceedings; use metadata or citation services for discovery, not as final evidence.
 
-**Reverse Challenge**: For any "fix" the paper proposes, ask:
-> "Does this fix inadvertently prove the framework's claims?"
+Classify the contribution when useful: problem/setting, method/mechanism, empirical finding, theory, dataset/benchmark, system, or engineering integration.
 
-The logic: if a paper identifies a problem and proposes a fix, and the fix addresses a symptom predicted by your framework, then the fix itself becomes evidence — even if the authors don't frame it that way. Push hard on whether the paper's narrative holds up, and whether its evidence points somewhere the authors didn't look.
+### 4.3 Critical Audit
 
-### Step 6: Cross-Paper Connections (Optional)
+Check only applicable risks: construct validity, causal attribution/confounders, statistical reliability, generalization, baseline fairness, missing ablations, and reproducibility. For AI/ML/robotics papers, use the domain-specific additions in `references/critical-audit.md`.
 
-If the user is building a body of related work, note:
-- **Structural analogues**: Other papers that observe the same phenomenon through different methods
-- **Complementary evidence**: Papers whose findings combine to tell a stronger story
-- **Contradictions**: Papers whose findings genuinely conflict (not just different interpretations)
-- **Methodology comparisons**: Differences in base model, training data, or evaluation that affect comparability
+Lead with the one or two issues that could change the conclusion. Do not pad the answer with generic limitations.
 
-## Writing Rules
+## Output Contract
 
-All output from this skill must follow these rules. The standard is: **a reader should understand every sentence without looking up the original paper.**
+Answer in the user's language. Default to a concise main answer with progressive detail.
 
-### De-jargoning
+Start with **极简结论 / Executive takeaways**, using one short sentence for each applicable item:
 
-Always use plain language first, then note the paper's original term in parentheses for traceability.
+- Motivation
+- Task
+- Method
+- Core result
+- Contribution/novelty
+- Main limitation
 
-- ❌ "Visual Anchor Drifting 导致 dilution effect"
-- ✅ "推理越长越忘记看图（论文称 Visual Anchor Drifting），因为文字太多把图的注意力挤没了（论文称 dilution effect）"
+For a standard deep read, use this order:
 
-This applies to:
-- Paper-coined concept names (Language Shortcut, Tool Usage Homogenization, etc.)
-- Causal explanations (credit assignment failure → 训练信号分不清该奖励什么)
-- Method names when the name is opaque (Cold-Start SFT → 先 SFT 打底再 RL)
+1. Motivation
+2. Task/Setting
+3. Method
+4. Experiments and what each verifies
+5. Contribution and novelty
+6. Critical audit
+7. Evidence appendix
+8. Research mapping or cross-paper connections, only when requested/configured
 
-Do NOT de-jargon universally understood ML terms (RL, SFT, GRPO, CoT, attention, loss, etc.) or proper nouns (benchmark names, model names).
+Follow these writing constraints:
 
-### Abbreviation Expansion
+- Put the conclusion before the derivation.
+- Use short sentences and one main point per paragraph or bullet.
+- Keep each main section to one to three bullets by default. Add detail only when it changes the conclusion or the user requests it.
+- Explain a technical term in plain language before giving the paper's term in parentheses.
+- Expand unfamiliar abbreviations on first use. Do not explain universally understood terms to an expert audience.
+- Prefer “what it solves, how it works, what the experiment shows” over formula or implementation dumps.
+- Explicitly signal **authors' claim**, **experimental support**, and **analysis/inference** when they differ.
+- Keep locators and full numeric evidence in the evidence appendix unless a number is essential to the main conclusion.
+- Use tables for structured comparisons such as the Setting Card or experiment matrix, not for simple prose.
+- Avoid repeating background, section-by-section summaries, and low-value details. Expand only the part the user asks about.
 
-Every abbreviation must be expanded on first use with a one-line explanation:
+When the user asks about only one part, let that part replace the full report. Give only the minimum context needed, the requested analysis, and at most three synthesis/audit bullets. Omit unrequested novelty, research mapping, and evidence appendix; do not repeat evidence that already has locators in the main matrix. For abstract-only input, omit the full Setting Card, experiment matrix, critical audit, and evidence ledger unless the user explicitly asks for them.
 
-- ❌ "基于 SCM 设计"
-- ✅ "基于 SCM（Structural Causal Model，结构因果模型——将变量间的因果关系建模为有向图）设计"
+Use `references/analysis-template.md` for the full report template and compact evidence ledger.
 
-### One-line Characterization
+## Source-Grounding Contract
 
-The paper title's one-line characterization (after the em-dash) must be in plain language, not the paper's own jargon:
+- Attach a locator to every headline number and capability claim: PDF page plus section/table/figure, or exact full-text URL plus heading/figure.
+- Re-open the original page for headline numbers, denominators, comparison conditions, and experimental settings. Do not rely on generated retrieval alone.
+- Record the paper version/date when versions may differ.
+- Label source-reported facts, external evidence, and your own inference clearly.
+- If evidence cannot be located, mark it **unverified** and exclude it from definitive conclusions.
+- Treat peer-reviewed papers, preprints, project pages, blogs, and demos as different evidence types.
 
-- ❌ `#### GeoEyes — "Tool Usage Homogenization"`
-- ✅ `#### GeoEyes — "工具调用千篇一律：每题恰好一次 zoom 的机械行为"`
+## Optional Modules
 
-## Output Format
+These modules supplement the reader's backbone; they do not replace it.
 
-The primary output is the causal chain analysis (Step 4), plus tri-dimensional tagging (Step 4.5) when a taxonomy is configured, plus research framework mapping (Step 5) when a hypothesis is configured. This goes into the user's related work document.
+- **Causal chain**: Use for diagnostic or causal papers, or when requested. Summarize phenomenon → setup → attribution → solution, then check whether each link follows.
+- **Taxonomy tagging**: If `references/taxonomy.md` exists, read it and add the configured tag. Otherwise skip it. See `references/taxonomy.example.md`.
+- **Research framework mapping**: If `references/hypothesis.md` exists or the user provides a framework, map the paper as support, challenge, or boundary condition. Otherwise skip it. See `references/hypothesis.example.md`.
+- **Cross-paper connections**: Add only when the user is building related work or provides comparison papers. Separate genuine contradiction from differences in setup.
 
-For a complete analysis, produce:
-
-1. **Three-part entry** (for `thinking-with-image.md` or equivalent doc)
-2. **Evidence chain entry** (one row for the summary table, if it exists)
-3. **Attribution entry** (if the paper proposes a new explanation)
-4. **Fix entry** (if the paper proposes a solution)
-
-## Configuration
-
-### Research Framework (Optional)
-
-If the user has a research hypothesis, theoretical lens, or set of claims they're building evidence for, they can create `references/hypothesis.md` (see `references/hypothesis.example.md` for the expected format). This file is entirely user-defined — it could be a hypothesis, a set of open questions, or any high-level narrative that organizes related work.
-
-- If `references/hypothesis.md` exists → read it before analysis, apply Step 5
-- If it doesn't exist → Steps 1-4 produce a complete analysis on their own, no need to ask
-
-### Classification Taxonomy (Optional)
-
-`references/taxonomy.md` defines the multi-dimensional classification framework for the research area. Each paper gets "hung" into this framework via the tri-dimensional tag (Step 4.5). See `references/taxonomy.example.md` for the expected format.
-
-- If `references/taxonomy.md` exists → apply Step 4.5 tagging
-- If it doesn't exist → skip tagging, the analysis is still complete
-- The taxonomy evolves as more papers are read — when a paper doesn't fit existing categories, propose a new category to the user
-
-### NotebookLM
-
-This skill depends on the `notebooklm` skill (notebooklm-py CLI). Every paper analyzed gets added to NotebookLM as a source. The typical notebook organization is one notebook per research topic (e.g., "CoT Faithfulness Survey"), with multiple papers as sources.
-
-If the user has an existing notebook, they'll usually specify a notebook ID or name. If not specified, ask which notebook to use or whether to create a new one.
-
-## Tips for Better Analysis
-
-- **Don't trust abstracts.** The abstract tells you what the authors want you to think. The experiments tell you what actually happened. Start from the experiments.
-- **Chase the denominators.** A "22% error rate" means nothing until you know: 22% of what? Measured how? On which subset? With what judge?
-- **Compare experimental setups before comparing results.** Two papers using "Qwen2.5-VL-7B" might have different SFT data, different RL recipes, different eval splits. Note these differences explicitly.
-- **Distinguish API errors from model errors.** In tool-augmented reasoning papers, reported failure rates may mix "the tool API was down" with "the model made a bad tool call". These have very different implications.
-- **Look for what the paper doesn't show.** Missing ablations, unreported baselines, or asymmetric comparisons often reveal more than what's presented.
+Optional modules belong after the complete standalone paper analysis so that a pre-existing framework does not distort the reading of the paper.
