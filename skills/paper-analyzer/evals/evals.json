@@ -3,25 +3,39 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "请深度分析 Attention Is All You Need（arXiv:1706.03762）。我主要想知道 motivation、task/setting、method、每个主要实验验证了什么，以及 contribution 和 novelty。用中文，尽量简洁，但关键数字要有页码或表格定位。",
-      "expected_output": "A concise Chinese deep read following the reader-centered backbone, with a setting card, experiment–claim matrix, three-level novelty assessment, critical audit, and inspectable evidence locators.",
+      "prompt": "请深度分析 Attention Is All You Need（arXiv:1706.03762）。我主要想知道 motivation、task/setting、网络架构和数据流、输入输出、loss、训练阶段与数据、每个主要实验验证了什么，以及 contribution 和 novelty。逐项解释正文图表。用中文，开头简洁，但方法和实验不要过度压缩，关键数字要有页码或表格定位。",
+      "expected_output": "A layered Chinese deep read with concise takeaways, a detailed method/training card, experiment–claim matrix, main-text figure/table ledger, three-level novelty assessment, critical audit, and inspectable evidence locators.",
       "files": [],
       "expectations": [
         "The response starts with concise takeaways covering motivation, task, method, core result, contribution/novelty, and the main limitation.",
-        "The main analysis follows Motivation, Task/Setting, Method, Experiments, Contribution/Novelty, and Critical Audit in that order.",
+        "The main analysis follows Motivation, Task/Setting, Method, Experiments, Figure/Table Ledger, Contribution/Novelty, and Critical Audit in that order.",
+        "The method section traces a representative input from tokens through embeddings and positional encoding, encoder and decoder stacks, output projection, and autoregressive prediction, including intermediate representations and training-versus-inference differences.",
+        "For positional encoding, multi-head self-attention, masked decoder self-attention, encoder-decoder attention, feed-forward layers, residual connections, and layer normalization, the response explains the module input, internal operation, output/downstream connection, and functional role rather than only naming the block.",
+        "Repeated encoder or decoder layers are explained once with their reuse and stack depth stated; no method-defining branch is omitted merely to keep the Method section short.",
+        "The response explains the scaled dot-product attention and multi-head projection/concatenation equations operationally, defining the main variables and why scaling and masking matter, without dumping unrelated derivations.",
+        "The method section covers objective/loss terms, training data and stages, and important optimization or inference details, marking unreported fields instead of guessing.",
         "Each headline experiment states the question being tested, comparison or controls, metric/result, actual support level, and a page/table/figure locator.",
+        "Source checks match the paper: Table 2 reports 28.4 EN-DE and 41.8 EN-FR BLEU for Transformer big; Table 3 reports 24.9 BLEU for the one-head variant; Table 4 reports Transformer F1 of 91.3 with WSJ-only data and 92.7 with semi-supervised data.",
+        "Every main-text figure and table appears once in a compact ledger explaining its content, intended message, actual support, and locator.",
+        "Experiment rows use stable IDs; the figure/table ledger references those IDs instead of repeating full settings and numeric results, and a redundant evidence appendix is omitted.",
+        "Metrics are explained with direction, scale or unit, denominator or aggregation, and any interpretation-critical limitation.",
         "Novelty is separated into author-claimed, internally demonstrated, and externally verified or explicitly not checked.",
         "The response distinguishes author claims from experimental support and agent inference."
       ]
     },
     {
       "id": 2,
-      "prompt": "看一下 Deep Residual Learning for Image Recognition（arXiv:1512.03385），重点逐项解释主实验和 ablation 分别想验证什么、控制了什么、结果能支持到哪一步。不要写成长篇论文摘要。",
-      "expected_output": "An experiment-focused analysis that provides only enough motivation, setting, and method context to interpret a compact experiment–claim matrix and its evidence limitations.",
+      "prompt": "看一下 Deep Residual Learning for Image Recognition（arXiv:1512.03385），先说明网络结构、输入输出、训练数据、loss 和训练配置，再逐项解释正文主实验和 ablation 分别做了什么、指标是什么意思、想验证什么、控制了什么、结果能支持到哪一步，并用一行概括每张正文图表。不要写成长篇背景摘要。",
+      "expected_output": "An experiment-focused analysis with enough architecture and training detail to interpret a complete main-text experiment–claim matrix, metric semantics, figure/table ledger, and evidence limitations.",
       "files": [],
       "expectations": [
         "The response prioritizes the experiment–claim matrix instead of producing a section-by-section paper summary.",
+        "The response traces an image through the stem, residual stages, pooling, and classifier, and explains how spatial resolution and channel width change across stages.",
+        "The response opens both basic and bottleneck residual blocks: it explains the residual branch, identity or projection shortcut, element-wise addition, activation placement, input/output compatibility, and how these choices differ instead of merely saying that skip connections are used.",
+        "The response explains inputs/outputs, training data, objectives, and the important training configuration before interpreting results, marking absent implementation details as not reported.",
         "Main results and ablations are separated when they test different claims.",
+        "Each metric is defined well enough to interpret direction, scale, aggregation, and practical meaning.",
+        "Every main-text figure and table is indexed with its intended message and any material caveat.",
         "Every reported headline number includes its condition and an inspectable page/table/figure locator.",
         "The analysis checks whether the comparisons isolate the claimed effect and notes any material confounder or missing control.",
         "Secondary or repetitive appendix results are grouped rather than exhaustively enumerated."
@@ -36,6 +50,7 @@
         "The response clearly says that abstract-only evidence is insufficient for a definitive deep analysis.",
         "The response may provide a provisional motivation/task/claim map but labels substantive conclusions unverified.",
         "The response does not invent datasets, baselines, metrics, method details, page numbers, tables, or figures.",
+        "The response does not invent architecture, loss, training stages, preprocessing, hyperparameters, or figure/table contents absent from the abstract.",
         "The claimed 18 percent improvement is not treated as verified because its metric, denominator, and conditions are missing.",
         "The response remains concise and identifies exactly what full-text evidence would be needed next."
       ]
@@ -51,6 +66,36 @@
         "The response distinguishes new mechanism, new combination, scaling, and engineering integration where applicable.",
         "The conclusion is scoped to the prior work actually checked and does not claim exhaustive field-wide novelty.",
         "The response is concise and puts the bottom-line novelty judgment first."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "请标准深读 U-Net（arXiv:1505.04597）。按 motivation、setting、method、experiments、contribution 和 limitation 来讲，开头简洁，但方法和实验要让我能真正理解论文。关键结论请定位到原文。",
+      "expected_output": "A standard deep read that automatically supplies applicable architecture/training detail, complete main-text experimental coverage, metric explanations, and a compact main-text figure/table ledger without requiring the user to enumerate those fields.",
+      "files": [],
+      "expectations": [
+        "The response keeps background compact and traces a representative image from the contracting path through the bottleneck and expanding path to the segmentation map, including important spatial and channel changes.",
+        "For convolution blocks, max-pooling, up-convolution, crop-and-concatenate skip connections, and the final classifier, the response explains input, internal transformation, output/next consumer, and role rather than only listing the architecture.",
+        "The response connects the weighted loss and data augmentation to the parts and behaviors they train, explains inference/tiling where applicable, and marks unreported details rather than guessing.",
+        "Every distinct main-text experiment or claim-bearing result is covered, while repeated conditions are grouped without being hidden.",
+        "Metrics are defined before their results are interpreted.",
+        "Every main-text figure and table is indexed once even though the prompt did not explicitly request exhaustive figure/table coverage.",
+        "Experiment rows use stable IDs; the figure/table ledger references those IDs without copying full numeric results, and a redundant evidence appendix is omitted.",
+        "Source checks match the paper: Fig. 1 maps a 572 by 572 input to a 388 by 388 output; Table 1 reports U-Net warping error 0.000353; Table 2 reports IoU 0.9203 for PhC-U373 and 0.7756 for DIC-HeLa.",
+        "Only applicable fields are reported; missing details are marked not reported rather than inferred."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "深度分析 No Free Lunch Theorems for Optimization。重点解释 motivation、问题设置、核心定理、假设、证明思路、结论成立的边界和贡献；不要为了套模板虚构网络架构、loss 或训练实验。",
+      "expected_output": "A theory-paper analysis that adapts the reader backbone to claims, assumptions, proof structure, examples, boundaries, and contribution without forcing neural-network or empirical fields.",
+      "files": [],
+      "expectations": [
+        "The response identifies the formal problem, theorem statements, assumptions, proof strategy, and scope of the conclusion.",
+        "The evidence structure maps claim/theorem to assumptions, proof or argument, examples, and boundaries or counterexamples.",
+        "The response does not invent architecture, inputs/outputs, losses, training stages, datasets, metrics, or experiments that do not apply.",
+        "The critical audit focuses on assumptions, quantifiers, applicability, and common overinterpretations rather than generic ML checklist items.",
+        "The opening remains concise and the contribution is separated from broader claims not established by the theorem."
       ]
     }
   ]

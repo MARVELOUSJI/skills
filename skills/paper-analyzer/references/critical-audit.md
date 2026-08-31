@@ -34,8 +34,18 @@ Read this file for standard deep reads and reproduction/review audits. Apply onl
 - Are released artifacts consistent with the version and experiments described in the paper?
 - Separate “artifacts available” from “results independently reproduced.”
 
+### Metric interpretation
+
+- Is the metric definition, direction, unit/scale, denominator, aggregation, and evaluation population clear?
+- Does the metric measure the claimed capability, or only a proxy that admits alternative explanations?
+- Could averaging, threshold choice, selective subsets, learned judges, or missing uncertainty change the conclusion?
+
 ## AI and Machine Learning Additions
 
+- Verify the architecture, backbone/checkpoint, parameter scale, input/output representation, and frozen versus trainable components.
+- Verify each loss term, weight, and schedule that is relevant to the claimed mechanism or result; check whether the objective actually operationalizes the claim.
+- Reconstruct training stages, initialization and checkpoint transitions; identify which data, parameters and objectives change at each stage.
+- Check optimizer, learning-rate schedule, batch size, training duration, stopping rule, seed count, compute, and checkpoint-selection criterion when they affect fairness or reproducibility.
 - Check train/test leakage, benchmark contamination, data filtering, and use of hidden evaluation data.
 - Check whether baselines receive comparable data, compute, model scale, tuning effort, and inference budget.
 - Verify checkpoint identity, prompt/template, decoding parameters, judge model/version, and metric implementation.

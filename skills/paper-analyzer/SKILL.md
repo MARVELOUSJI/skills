@@ -1,6 +1,6 @@
 ---
 name: paper-analyzer
-description: "Deep, source-grounded analysis of a specific academic paper from a local PDF, full-text URL, arXiv ID, or optional NotebookLM notebook. Use whenever the user wants to understand a paper beyond a summary: motivation and prior limitations, task/setting, method mechanism, what each experiment tests, contribution/novelty, exact page/table/figure-level evidence, claim-evidence gaps, reproducibility, or research-hypothesis mapping. Supports direct reading (default), NotebookLM assistance, and dual verification. Triggers include 'analyze/deep dive/critical read this paper', 'what does each experiment prove', 'is this paper really novel', '分析这篇论文', '论文深度分析', '每个实验验证什么', '这篇论文到底说明了什么', or a PDF/URL/arXiv ID with analysis intent. NOT for paper discovery/filtering (use scholar-agent), quick summaries, broad multi-paper literature surveys, formal journal-style referee reports when a reviewer workflow is available, citation formatting, or merely adding sources to NotebookLM."
+description: "Deep, source-grounded analysis of a specific academic paper from a local PDF, full-text URL, arXiv ID, or optional NotebookLM notebook. Use whenever the user wants to understand a paper beyond a summary: motivation and prior limitations, task/setting, architecture and end-to-end data flow, module-by-module implementation mechanisms, model inputs/outputs, training data/stages/losses, what each experiment tests, metric meanings, figure/table-by-figure interpretation, contribution/novelty, exact page/table/figure-level evidence, claim-evidence gaps, reproducibility, or research-hypothesis mapping. Supports direct reading (default), NotebookLM assistance, and dual verification. Triggers include 'analyze/deep dive/critical read this paper', 'explain how every module works', 'explain the architecture and training', 'what does each experiment prove', 'walk through every figure and table', 'is this paper really novel', '分析这篇论文', '论文深度分析', '逐模块讲清楚实现机制', '网络输入输出和 loss 是什么', '每个实验验证什么', '逐图逐表解释', '这篇论文到底说明了什么', or a PDF/URL/arXiv ID with analysis intent. NOT for paper discovery/filtering (use scholar-agent), quick summaries, broad multi-paper literature surveys, formal journal-style referee reports when a reviewer workflow is available, citation formatting, or merely adding sources to NotebookLM."
 ---
 
 # Paper Analyzer
@@ -12,6 +12,7 @@ Analyze one paper through three passes: orient first, understand the paper throu
 - Follow the user's reading backbone: **Motivation → Task/Setting → Method → Experiments → Contribution/Novelty**.
 - Keep source retrieval separate from interpretation. The original paper is the authority; generated retrieval is only an aid.
 - Prefer a short, layered answer. Put the conclusion first and evidence details later.
+- Let detail follow the paper's complexity and the reader's understanding needs. Keep routine background compact, but explain the method until the reader can trace how the complete system works; do not target a fixed Method length.
 - Distinguish what the authors claim, what the experiments demonstrate, and what you infer.
 - Do not force every paper into the same critique. Apply only checks that matter for the paper type and the user's goal.
 
@@ -58,8 +59,8 @@ Explain the chain **important problem → prior limitation or missing study → 
 Create a compact Setting Card containing only relevant fields:
 
 - research task or question;
-- inputs, outputs, intervention, or system boundary;
-- data/population/environment and train-validation-test split when applicable;
+- inputs, outputs, intervention, or system boundary, including modality and shape/representation when informative;
+- data/population/environment, source and scale, preprocessing/augmentation, and train-validation-test split when applicable;
 - supervision, assumptions, constraints, and allowed information;
 - baselines/comparators, metrics, and evaluation protocol.
 
@@ -67,24 +68,56 @@ Setting details define what the results mean. Compare results only when the unde
 
 ### 3.3 Method
 
-Explain the method as **problem → design choice → mechanism → expected effect**.
+Explain the method as **overall flow → component mechanisms → component interactions → training/inference behavior**. For each design, retain the link **problem → design choice → mechanism → expected effect** so the explanation says both how it works and why it exists.
 
 - Start with the central idea before components, formulas, or implementation details.
-- For each important component, state which limitation it addresses and why it should help.
-- Include a formula only when it is essential; explain its role in plain language immediately afterward.
+- Inventory the method-defining modules and stages from the method text, architecture figures, algorithms, and training/inference descriptions before drafting. Include side branches, fusion paths, memories, controllers, and post-processing that affect the output. Explain repeated instances of the same block once, then state where and how often the block is reused.
+- Trace one representative input through the complete method or system, from its original representation to the final output. Name intermediate representations and important shape changes when the paper reports them or they are needed to understand the mechanism.
+- For every method-defining module or stage, explain its input, internal operation, output, connection to the next module, and functional role. State which parts are learned, frozen, rule-based, iterative, or shared when relevant.
+- Do not treat a module name such as “Transformer block,” “adapter,” or “fusion layer” as an explanation. Open the block and describe the operations that materially define its behavior.
+- Include equations, update rules, or pseudocode that define a transformation, routing/attention rule, state update, objective, or inference procedure. Explain the variables, computation order, and operational meaning; omit routine derivations that do not improve understanding.
+- Use architecture and algorithm figures as maps: walk through their blocks and arrows in data-flow order, then connect them to the relevant text and equations.
 - Separate genuine conceptual changes from combinations, scaling, engineering, or presentation choices.
+
+Treat a module or stage as method-defining when it appears in the system pipeline, changes the representation or state, implements a claimed contribution, has its own objective/training stage, or affects inference. Use this comprehension test instead of a word-count target: after reading the Method section, the reader should be able to explain what enters each method-defining module, what transformation occurs, what leaves it, how modules connect, and how training and inference use the system. A simple method may need only a few paragraphs; a multi-stage system may require a longer walkthrough.
+
+For learned methods and system papers, build an adaptive **Method and Training Walkthrough** with the applicable fields:
+
+- architecture or system decomposition, including important backbones, modules, frozen/trainable parts, and information flow;
+- model input and output, including modality, representation, tensor shape, prediction target, or control signal when reported and informative;
+- end-to-end data flow: how raw input becomes the final output and where each proposed component acts;
+- module mechanisms: the actual computation, algorithm, message exchange, state transition, or control logic inside each method-defining component, plus its output and downstream consumer;
+- objectives and losses: each term's role, weighting, and schedule; explain what behavior it encourages rather than listing symbols only;
+- training stages: pretraining, warm-up, stage-wise optimization, fine-tuning, distillation, or joint training, including what changes between stages;
+- training data: source, scale, split, supervision, filtering, preprocessing, and augmentation;
+- training-versus-inference behavior: which inputs, states, branches, objectives, or iterative steps differ, including decoding, sampling, test-time processing, or control loops;
+- optimization and execution details that affect interpretation: optimizer, learning-rate schedule, batch size, stopping rule, seeds, compute, and checkpoint selection. In a standard deep read, expand these only when they affect the mechanism, fairness, or conclusion; cover them systematically for reproduction/review requests.
+
+Do not invent missing details. Mark important fields as **not reported** or **unclear**, because missing architecture, objective, data, or stage information is itself a reproducibility finding. Distinguish paper-reported implementation from your explanatory analogy or inference. For non-learning papers, adapt the walkthrough to the equivalent algorithm, system, intervention, study design, or proof pipeline instead of forcing neural-network terminology.
 
 ### 3.4 Experiments
 
 Read claim-bearing figures and tables closely. Inspect axes, units, denominators, comparison conditions, uncertainty, captions, and the methods needed to interpret them.
 
-For each main experiment, record:
+For each distinct main-text experiment, assign an ID such as `E1` and record:
 
-**question/hypothesis → comparison and controlled variables → data/metric → result → authors' interpretation → actual support → evidence locator**
+**question/hypothesis → what was done → comparison and controlled variables → data/split → metric meaning → result → authors' interpretation → actual support and rigor → evidence locator**
 
-Give full rows to experiments that support headline contributions. Group auxiliary experiments when they repeat the same conclusion. Expand appendix experiments only when they change a conclusion, expose a limitation, or matter for reproduction.
+For every metric needed to interpret a result, state what it measures, whether higher or lower is better, its unit/scale and denominator or aggregation, and any important limitation. Define a repeated metric once in its first row or a compact glossary, then reuse the name. Give full rows to experiments that support headline contributions and compact rows to supporting main-text experiments. Repeated datasets, seeds, or variants that test the same hypothesis may share a row, but name every condition and do not hide a result that tests a different claim. Expand appendix experiments when they change a conclusion, expose a limitation, matter for reproduction, or the user requests exhaustive coverage.
+
+For non-empirical papers, replace the experiment matrix with the closest evidence structure: **claim/theorem → assumptions → proof or argument → evidence/example → boundary or counterexample** for theory, and **position/claim → cited evidence → counterevidence → support level** for review or position papers. Do not force metrics, losses, or experiments where they do not apply.
 
 Use the experiment matrix in `references/analysis-template.md`. A result table without the question each experiment tests is incomplete.
+
+### 3.5 Figures and Tables
+
+Create a compact **Figure/Table Ledger** after the experiment analysis:
+
+- Standard deep read: cover every main-text figure and table once, including architecture diagrams, qualitative examples, ablations, and failure cases.
+- Reproduction/review audit: also cover appendix figures and tables that contain methodological or experimental evidence.
+- Explicit “逐图逐表 / every figure and table” request: cover all main-text and appendix items without omission.
+
+For each item, state what it contains, how to read it, the message the authors intend, what it actually supports, and any material caveat. Keep the ledger compact. Quantitative settings and results belong in the experiment matrix; the ledger should reference the related `E#` row rather than duplicating numbers. Use it especially to explain architecture diagrams, qualitative examples, visual failure cases, and how multiple panels fit together.
 
 ## Step 4: Pass Three — Audit Claims and Evidence
 
@@ -134,27 +167,29 @@ For a standard deep read, use this order:
 
 1. Motivation
 2. Task/Setting
-3. Method
+3. Method, architecture, and training
 4. Experiments and what each verifies
-5. Contribution and novelty
-6. Critical audit
-7. Evidence appendix
-8. Research mapping or cross-paper connections, only when requested/configured
+5. Figure/Table Ledger
+6. Contribution and novelty
+7. Critical audit
+8. Evidence appendix
+9. Research mapping or cross-paper connections, only when requested/configured
 
 Follow these writing constraints:
 
 - Put the conclusion before the derivation.
 - Use short sentences and one main point per paragraph or bullet.
-- Keep each main section to one to three bullets by default. Add detail only when it changes the conclusion or the user requests it.
+- Keep motivation, contribution, and limitations compact by default. Size Method and Experiments by the paper's actual complexity and the user's goal: stop when the mechanism and evidence are understandable, not at a preset bullet or word count.
 - Explain a technical term in plain language before giving the paper's term in parentheses.
 - Expand unfamiliar abbreviations on first use. Do not explain universally understood terms to an expert audience.
-- Prefer “what it solves, how it works, what the experiment shows” over formula or implementation dumps.
+- Prefer “what enters, what operation happens, what exits, why the component exists, and what the experiment shows” over unexplained formulas or raw implementation dumps.
 - Explicitly signal **authors' claim**, **experimental support**, and **analysis/inference** when they differ.
-- Keep locators and full numeric evidence in the evidence appendix unless a number is essential to the main conclusion.
+- Keep full numeric evidence in the evidence appendix unless a number is essential to the main conclusion or experiment matrix. Method, experiment, and figure/table locators may stay with their rows for easy verification. The evidence appendix is conditional: omit it entirely when all headline evidence already has complete locators elsewhere, and never repeat entries already complete in a matrix or ledger.
 - Use tables for structured comparisons such as the Setting Card or experiment matrix, not for simple prose.
 - Avoid repeating background, section-by-section summaries, and low-value details. Expand only the part the user asks about.
+- For a complex method, use a numbered end-to-end flow and a compact module map when they make interactions easier to follow. For a simple method, cohesive prose is sufficient; do not force a table merely to look complete.
 
-When the user asks about only one part, let that part replace the full report. Give only the minimum context needed, the requested analysis, and at most three synthesis/audit bullets. Omit unrequested novelty, research mapping, and evidence appendix; do not repeat evidence that already has locators in the main matrix. For abstract-only input, omit the full Setting Card, experiment matrix, critical audit, and evidence ledger unless the user explicitly asks for them.
+When the user asks about only one part, let that part replace the full report. Give only the minimum context needed, analyze the requested part at the necessary depth, and add at most three synthesis/audit bullets. Omit unrequested novelty, research mapping, and evidence appendix; do not repeat evidence that already has locators in the main matrix. For abstract-only input, omit the full Setting Card, Method and Training Walkthrough, experiment matrix, critical audit, and evidence ledger unless the user explicitly asks for them.
 
 Use `references/analysis-template.md` for the full report template and compact evidence ledger.
 

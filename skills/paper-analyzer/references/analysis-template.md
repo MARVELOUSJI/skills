@@ -1,6 +1,6 @@
 # Paper Analysis Template
 
-Use this template for a standard deep read. Translate headings into the user's language. Omit empty or irrelevant fields, and keep the main body concise.
+Use this template for a standard deep read. Translate headings into the user's language. Omit empty or irrelevant fields. Keep routine material concise, but let method detail scale with the actual method until its mechanisms and connections are understandable.
 
 ## 1. Executive Takeaways
 
@@ -34,30 +34,88 @@ Use a table only for fields that apply.
 | Metrics | What each metric means, including denominator or judge |
 | Constraints | Information, compute, hardware, or deployment restrictions |
 
-## 4. Method Map
+## 4. Method, Architecture, and Training
 
-Explain the central idea first. Then map only important components:
+Explain the central idea first, then trace one representative input through the complete system in computation order:
+
+`raw input → representation/preprocessing → module or stage 1 → ... → final output`
+
+Name intermediate representations and important shape changes when reported or necessary for understanding. For an iterative method, show one update and explain how it repeats. For a control or interactive system, show the observation–decision–action–feedback loop.
+
+Before drafting, inventory modules and stages from the method text, architecture figures, algorithms, and training/inference descriptions. Include branches and post-processing that affect the output. A method-defining item is one that changes representation/state, implements a claimed contribution, has separate training, or affects inference. Explain a repeated block once and state where it is reused rather than duplicating identical descriptions.
+
+Then map each important component. Prefer cohesive prose for a simple method and this table for a multi-module system:
+
+| Module / stage | Input | Internal mechanism | Output / next consumer | Why it exists; learned or fixed |
+|---|---|---|---|---|
+| ... | modality, representation, shape, or state | actual operations, equation/update, routing, or algorithm steps | representation/state and downstream connection | limitation addressed, expected effect, trainable/frozen/shared state |
+
+A component name is not a mechanism description. Explain what happens inside blocks such as attention, fusion, adapter, memory, planner, or decoder when those internals affect the paper's contribution or data flow. Connect architecture-figure blocks and arrows to the text and mechanism-defining equations.
+
+Retain the design rationale:
 
 | Problem or limitation | Design choice | Why it should work | Dependency or assumption |
 |---|---|---|---|
 | ... | ... | ... | ... |
 
+Add the applicable implementation details. Write **not reported** rather than guessing. Do not infer hidden tensor shapes, module internals, or training stages from convention. In standard deep reads, keep routine optimization and compute compact unless they affect the mechanism, comparison fairness, or conclusion; expand them for reproduction/review audits.
+
+The module map and the following aspect list are collection aids, not two mandatory duplicate tables. In the final answer, use the clearest representation and avoid restating the same mechanism twice.
+
+| Aspect | What to record |
+|---|---|
+| Architecture / system | Backbone, modules, connections, frozen/trainable/shared parts, and information flow |
+| Input | Modality, representation, tensor shape, context, or intervention |
+| Output | Prediction target, generated object, state estimate, action, or measured outcome |
+| End-to-end data flow | Each transformation and intermediate representation from input to output; where every proposed component acts |
+| Module internals | Computation, update rule, message exchange, memory/state change, control logic, or algorithm steps inside each method-defining component |
+| Objectives / losses | Formula or term, role, weight, schedule, and intended behavior |
+| Training stages | Stage order, initialization/checkpoint, trainable parts, data, objective, and transition between stages |
+| Training data | Source, scale, supervision, split, filtering, preprocessing, and augmentation |
+| Optimization | Optimizer, learning-rate schedule, batch size, epochs/steps, stopping rule, seeds, compute, and checkpoint selection |
+| Training vs. inference | What inputs, branches, state updates, objectives, or iterative steps differ between learning and use |
+| Inference / deployment | Decoding, sampling, test-time processing, stopping condition, control loop, latency, or deployment constraints |
+
+Use equations or pseudocode when they define a transformation, routing rule, state update, objective, or inference procedure. Explain symbols and computation order in plain language; skip derivations that do not change how the method is understood.
+
+Before moving to Experiments, apply this comprehension check:
+
+1. Can the reader trace a representative input to the final output?
+2. Can the reader say what enters, happens inside, and exits every method-defining module?
+3. Are module interactions and intermediate representations clear?
+4. Are the loss terms and training stages connected to the components they train?
+5. Is the difference between training and inference clear?
+
+The required length is whatever satisfies the applicable questions. Do not lengthen a simple method or compress a complex system to fit a fixed format.
+
 ## 5. Experiment–Claim Matrix
 
 Each main row should answer what the experiment was designed to establish, not merely repeat its result.
 
-| Experiment question / hypothesis | Comparison and controlled variables | Data and metric | Key result | Authors' interpretation | Actual support | Evidence locator |
-|---|---|---|---|---|---|---|
-| ... | ... | ... | ... | ... | direct / partial / unsupported / unverified | p. N, Fig./Table/Section X |
+| ID / experiment question or hypothesis | What was done; comparison and controls | Data / split | Metric meaning | Key result | Authors' interpretation | Actual support / rigor | Evidence locator |
+|---|---|---|---|---|---|---|---|
+| E1 — ... | ... | ... | define direction, unit, denominator, aggregation, and caveat | ... | ... | direct / partial / unsupported / unverified; key confounder | p. N, Fig./Table/Section X |
 
 Guidelines:
 
 - Give separate rows to the main result, ablations, robustness/generalization, efficiency, and diagnostic/causal tests when they support different claims.
+- Cover every distinct main-text experiment. Use compact rows for supporting experiments rather than omitting them.
 - State whether comparisons use the same data, checkpoint, training budget, tuning budget, and evaluation protocol when relevant.
-- Explain the metric and denominator before interpreting a percentage or aggregate score.
-- Group repeated secondary results instead of producing a row for every appendix table.
+- Explain what each metric measures, whether higher or lower is better, its unit/scale, denominator or aggregation, and important failure modes before interpreting it. Define repeated metrics once in the first relevant row or a compact glossary.
+- Repeated datasets, seeds, or variants that test the same hypothesis may share a row, but name every condition. Keep separate rows when the hypothesis, controlled variable, or conclusion changes.
+- For theory, review, or position papers, replace this matrix with the applicable claim–assumption–proof/evidence–boundary structure instead of inventing experiments or metrics.
 
-## 6. Contribution and Novelty
+## 6. Figure/Table Ledger
+
+Cover every main-text figure and table once. Include appendix items for reproduction/review audits or explicit exhaustive requests.
+
+| Item | Related method / experiment | What it contains / how to read it | Intended message | Actual support and caveat | Evidence locator |
+|---|---|---|---|---|---|
+| Fig./Table X | Method Walkthrough or E1 | axes, panels, rows/columns, conditions, or qualitative examples | what the authors want it to show | what follows, what does not, and any ambiguity | p. N, caption/section |
+
+Cross-reference the experiment matrix instead of repeating settings or numbers. Use this ledger to explain architecture/data-flow diagrams, panel relationships, qualitative examples, and failure cases; identify whether examples appear representative or selectively chosen.
+
+## 7. Contribution and Novelty
 
 | Level | Finding |
 |---|---|
@@ -67,7 +125,7 @@ Guidelines:
 
 Classify contributions when useful: problem/setting, method/mechanism, empirical finding, theory, dataset/benchmark, system, or engineering integration.
 
-## 7. Critical Audit
+## 8. Critical Audit
 
 Report only material issues:
 
@@ -77,10 +135,12 @@ Report only material issues:
 4. The boundary beyond which the result should not be generalized.
 5. The missing information that most affects reproducibility.
 
-## 8. Evidence Appendix
+## 9. Evidence Appendix
+
+Use this section only for headline claims or numbers not already fully located in the Setting Card, Method Walkthrough, experiment matrix, or Figure/Table Ledger. Omit the section when it would only repeat earlier evidence.
 
 | Claim or number | Voice | Evidence locator | Status | Note |
 |---|---|---|---|---|
 | ... | authors / external source / analysis | p. N, Fig./Table/Section X or exact URL | direct / partial / unsupported / unverified | definition, condition, denominator, or caveat |
 
-Keep most locators here so the main explanation remains easy to read. Repeat a locator in the main body only when it is central to the conclusion.
+Keep most locators here so the main explanation remains easy to read. Omit entries already fully captured in a matrix or ledger, and repeat a locator in the main body only when it is central to the conclusion.

@@ -8,7 +8,10 @@ English | [中文](README.zh-CN.md)
 
 - **Three-pass reading** — orientation → structured understanding → evidence audit
 - **Reader-centered backbone** — Motivation → Task/Setting → Method → Experiments → Contribution/Novelty
+- **Mechanism-complete method walkthrough** — Trace the end-to-end data flow and explain each important module's input, internal operation, output, connections, and role
+- **Adaptive Method and Training Card** — Cover losses, training stages, data, optimization, and inference only to the depth needed by the paper and reading goal
 - **Experiment–claim matrix** — Explain what every main experiment tests, how it tests it, and how much the result supports
+- **Figure/Table Ledger** — Explain every main-text figure and table; include appendices for exhaustive or reproduction-focused reads
 - **Three novelty levels** — Separate author claims, internally demonstrated contributions, and externally verified novelty
 - **Evidence grounding** — Link headline numbers and capability claims to pages, sections, tables, or figures
 - **Concise output** — Lead with plain-language conclusions and move full numbers and locators to an evidence appendix
@@ -32,6 +35,7 @@ Direct reading needs only the agent's PDF, file, and web tools. NotebookLM mode 
 ```text
 Analyze paper 2603.14821 in depth
 What are this paper's motivation, setting, and method?
+Walk me through how every important module in this system actually works
 Explain what each experiment tests and whether the result supports the conclusion
 Is the claimed novelty actually supported by prior work?
 Deep-read ./papers/example.pdf and verify the headline numbers
@@ -42,7 +46,7 @@ Cross-check this paper with NotebookLM
 
 1. **Set depth and source** — Standard deep read by default; reproduction or review requests receive a stronger audit.
 2. **Pass one: build the map** — Identify paper type, research question, headline claim, and key figures/tables.
-3. **Pass two: understand** — Analyze Motivation, Task/Setting, Method, and Experiments in order.
+3. **Pass two: understand** — Analyze Motivation and Task/Setting, then trace the complete method and each important module before examining Experiments.
 4. **Pass three: audit** — Check direct evidence, alternative explanations, generalization, and reproducibility.
 5. **Contribution and novelty** — Separate author claims, internal evidence, and external prior-work verification.
 
@@ -50,7 +54,7 @@ The causal chain (phenomenon → setup → attribution → solution), taxonomy t
 
 ## Default Output
 
-The answer opens with at most six short takeaways: Motivation, Task, Method, core result, Contribution/Novelty, and main limitation. It then expands only the necessary Setting Card, experiment–claim matrix, critical audit, and evidence appendix.
+The answer opens with at most six short takeaways: Motivation, Task, Method, core result, Contribution/Novelty, and main limitation. Method length is not fixed: a simple method stays short, while a complex system expands until the reader can trace the full data flow and explain how every important module works. Experiments cover every distinct main-text claim, metric meanings, and the Figure/Table Ledger.
 
 ## Reading Modes
 

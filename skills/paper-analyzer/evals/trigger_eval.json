@@ -1,9 +1,9 @@
 [
-  {"query": "帮我深度分析 ~/papers/new_method.pdf，重点说 motivation、setting、method 和每个实验到底验证了什么", "should_trigger": true},
+  {"query": "帮我深度分析 ~/papers/new_method.pdf，重点说 motivation、setting、网络输入输出、loss、训练阶段和每个实验到底验证了什么", "should_trigger": true},
   {"query": "这篇 arXiv:2504.01234 到底说明了什么？关键数字请给页码和表格位置", "should_trigger": true},
   {"query": "critical read this paper and tell me whether its ablations actually support the mechanism claim", "should_trigger": true},
   {"query": "这篇论文声称是 first work，我想知道它的 novelty 到底是不是真的，帮我查原始相关论文核验", "should_trigger": true},
-  {"query": "逐项解释这个 PDF 里的主实验、鲁棒性实验和消融实验分别想证明什么", "should_trigger": true},
+  {"query": "逐图逐表解释这个 PDF，包括主实验、鲁棒性实验和消融实验分别想证明什么", "should_trigger": true},
   {"query": "用 NotebookLM 和原始 PDF 双重核验这篇论文的 Table 2，看看作者结论有没有夸大", "should_trigger": true},
   {"query": "我要复现 arXiv:2406.12345，先审计它的 setting、训练细节、指标、随机种子和计算资源是否完整", "should_trigger": true},
   {"query": "分析这篇单篇论文是否支持我的假说：长推理会削弱视觉信息利用", "should_trigger": true},
