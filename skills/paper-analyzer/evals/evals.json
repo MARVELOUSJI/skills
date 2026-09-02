@@ -4,13 +4,14 @@
     {
       "id": 1,
       "prompt": "请深度分析 Attention Is All You Need（arXiv:1706.03762）。我主要想知道 motivation、task/setting、网络架构和数据流、输入输出、loss、训练阶段与数据、每个主要实验验证了什么，以及 contribution 和 novelty。逐项解释正文图表。用中文，开头简洁，但方法和实验不要过度压缩，关键数字要有页码或表格定位。",
-      "expected_output": "A layered Chinese deep read with concise takeaways, a detailed method/training card, experiment–claim matrix, main-text figure/table ledger, three-level novelty assessment, critical audit, and inspectable evidence locators.",
+      "expected_output": "A layered Chinese deep read with concise takeaways, a motivation-and-implementation-complete method walkthrough, experiment–claim matrix, main-text figure/table ledger, three-level novelty assessment, critical audit, and inspectable evidence locators.",
       "files": [],
       "expectations": [
         "The response starts with concise takeaways covering motivation, task, method, core result, contribution/novelty, and the main limitation.",
         "The main analysis follows Motivation, Task/Setting, Method, Experiments, Figure/Table Ledger, Contribution/Novelty, and Critical Audit in that order.",
         "The method section traces a representative input from tokens through embeddings and positional encoding, encoder and decoder stacks, output projection, and autoregressive prediction, including intermediate representations and training-versus-inference differences.",
-        "For positional encoding, multi-head self-attention, masked decoder self-attention, encoder-decoder attention, feed-forward layers, residual connections, and layer normalization, the response explains the module input, internal operation, output/downstream connection, and functional role rather than only naming the block.",
+        "For positional encoding, multi-head self-attention, masked decoder self-attention, encoder-decoder attention, feed-forward layers, residual connections, and layer normalization, the response explains the local motivation, concrete sublayer/operator order, input transformation, output/downstream connection, and intended effect rather than only naming the block.",
+        "Each paper-specific module explanation distinguishes author-stated rationale from analyst reconstruction, and does not claim empirical necessity without isolating evidence.",
         "Repeated encoder or decoder layers are explained once with their reuse and stack depth stated; no method-defining branch is omitted merely to keep the Method section short.",
         "The response explains the scaled dot-product attention and multi-head projection/concatenation equations operationally, defining the main variables and why scaling and masking matter, without dumping unrelated derivations.",
         "The method section covers objective/loss terms, training data and stages, and important optimization or inference details, marking unreported fields instead of guessing.",
@@ -31,7 +32,7 @@
       "expectations": [
         "The response prioritizes the experiment–claim matrix instead of producing a section-by-section paper summary.",
         "The response traces an image through the stem, residual stages, pooling, and classifier, and explains how spatial resolution and channel width change across stages.",
-        "The response opens both basic and bottleneck residual blocks: it explains the residual branch, identity or projection shortcut, element-wise addition, activation placement, input/output compatibility, and how these choices differ instead of merely saying that skip connections are used.",
+        "The response opens both basic and bottleneck residual blocks: it explains the degradation problem motivating residual learning, the ordered residual-branch operations, identity or projection shortcut, element-wise addition, activation placement, input/output compatibility, and why the projection is used when dimensions change instead of merely saying that skip connections are used.",
         "The response explains inputs/outputs, training data, objectives, and the important training configuration before interpreting results, marking absent implementation details as not reported.",
         "Main results and ablations are separated when they test different claims.",
         "Each metric is defined well enough to interpret direction, scale, aggregation, and practical meaning.",
@@ -75,7 +76,7 @@
       "files": [],
       "expectations": [
         "The response keeps background compact and traces a representative image from the contracting path through the bottleneck and expanding path to the segmentation map, including important spatial and channel changes.",
-        "For convolution blocks, max-pooling, up-convolution, crop-and-concatenate skip connections, and the final classifier, the response explains input, internal transformation, output/next consumer, and role rather than only listing the architecture.",
+        "For convolution blocks, max-pooling, up-convolution, crop-and-concatenate skip connections, and the final classifier, the response explains the local motivation, ordered internal architecture, input transformation, output/next consumer, and intended effect rather than only listing the architecture.",
         "The response connects the weighted loss and data augmentation to the parts and behaviors they train, explains inference/tiling where applicable, and marks unreported details rather than guessing.",
         "Every distinct main-text experiment or claim-bearing result is covered, while repeated conditions are grouped without being hidden.",
         "Metrics are defined before their results are interpreted.",
@@ -96,6 +97,21 @@
         "The response does not invent architecture, inputs/outputs, losses, training stages, datasets, metrics, or experiments that do not apply.",
         "The critical audit focuses on assumptions, quantifiers, applicability, and common overinterpretations rather than generic ML checklist items.",
         "The opening remains concise and the contribution is separated from broader claims not established by the theorem."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "深度分析 Proximal Policy Optimization Algorithms（arXiv:1707.06347）的 Method。我不想只看公式和模块名：请说清每个算法设计解决什么问题、为什么这样设计，从采样到更新的完整流程，每轮维护什么状态、怎么更新、何时停止，以及训练和使用阶段有什么不同。用原文页码、公式或 Algorithm 定位。",
+      "expected_output": "A method-focused Chinese explanation that reconstructs PPO as an executable ordered procedure and explains the local motivation, mechanics, state, interfaces, and evidence boundary of each method-defining objective and update stage.",
+      "files": [],
+      "expectations": [
+        "The response starts with the policy-optimization bottleneck and a numbered end-to-end flow from environment interaction and trajectory collection through target or advantage computation, minibatch optimization, policy synchronization, and repetition.",
+        "For the clipped surrogate objective, the response explains the local motivation, probability-ratio computation, clipping interval, min operation, gradient-level intended effect, and how it constrains an update without claiming a hard trust-region guarantee.",
+        "PPO-Clip and adaptive-KL-penalty variants are separated rather than blended into one unnamed PPO algorithm.",
+        "The response maps the paper's equations and Algorithm 1 to ordered computation steps, defines maintained or snapshotted policy state, batch reuse, update epochs, and stopping or repetition conditions, and marks details absent from the paper as not reported.",
+        "Policy loss, value-function loss, entropy term, and shared or separate network details are connected to the parameters or behavior they train when reported, with paper-specific versus implementation-conventional details distinguished.",
+        "Training-time rollout and optimization are distinguished from deployment-time action selection, and every paper-specific algorithm claim has a page, equation, section, or Algorithm locator.",
+        "The explanation distinguishes the design's intended effect from what the experiments actually isolate or demonstrate."
       ]
     }
   ]

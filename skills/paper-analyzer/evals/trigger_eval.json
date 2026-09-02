@@ -8,6 +8,7 @@
   {"query": "我要复现 arXiv:2406.12345，先审计它的 setting、训练细节、指标、随机种子和计算资源是否完整", "should_trigger": true},
   {"query": "分析这篇单篇论文是否支持我的假说：长推理会削弱视觉信息利用", "should_trigger": true},
   {"query": "deep dive into https://arxiv.org/pdf/2303.04137 and map problem, design choices, experiments, and evidence gaps", "should_trigger": true},
+  {"query": "把这篇论文 Method 里每个模块的局部 motivation、内部架构和连接方式讲明白，算法要按初始化、逐步更新和停止条件来讲", "should_trigger": true},
   {"query": "我在写 related work，只需要把这篇具体论文和我的方法逐项对比，结论要回到原文证据", "should_trigger": true},
   {"query": "帮我找最近一个月视觉语言模型方向值得读的 20 篇论文", "should_trigger": false},
   {"query": "把今天 scholar inbox 里的论文筛一遍，选三篇加入 NotebookLM", "should_trigger": false},

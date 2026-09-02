@@ -1,6 +1,6 @@
 ---
 name: paper-analyzer
-description: "Deep, source-grounded analysis of a specific academic paper from a local PDF, full-text URL, arXiv ID, or optional NotebookLM notebook. Use whenever the user wants to understand a paper beyond a summary: motivation and prior limitations, task/setting, architecture and end-to-end data flow, module-by-module implementation mechanisms, model inputs/outputs, training data/stages/losses, what each experiment tests, metric meanings, figure/table-by-figure interpretation, contribution/novelty, exact page/table/figure-level evidence, claim-evidence gaps, reproducibility, or research-hypothesis mapping. Supports direct reading (default), NotebookLM assistance, and dual verification. Triggers include 'analyze/deep dive/critical read this paper', 'explain how every module works', 'explain the architecture and training', 'what does each experiment prove', 'walk through every figure and table', 'is this paper really novel', '分析这篇论文', '论文深度分析', '逐模块讲清楚实现机制', '网络输入输出和 loss 是什么', '每个实验验证什么', '逐图逐表解释', '这篇论文到底说明了什么', or a PDF/URL/arXiv ID with analysis intent. NOT for paper discovery/filtering (use scholar-agent), quick summaries, broad multi-paper literature surveys, formal journal-style referee reports when a reviewer workflow is available, citation formatting, or merely adding sources to NotebookLM."
+description: "Deep, source-grounded analysis of one academic paper from a local PDF, full-text URL, arXiv ID, or optional NotebookLM source. Use for deep or critical reading, reproduction audits, architecture/training explanations, experiment interpretation, figure/table walkthroughs, and novelty checks. Explains every method-defining module or algorithm through its local design motivation, concrete architecture or ordered procedure, inputs/outputs, data or state changes, downstream connections, losses, and training-versus-inference behavior, with paper locators. Triggers include 'deep dive this paper', 'explain why and how every module works', 'analyze the algorithm step by step', '分析这篇论文', '逐模块讲清楚设计动机、架构和实现', '逐步解释算法流程', '每个实验验证什么', and '逐图逐表解释'. NOT for paper discovery/filtering (use scholar-agent), quick summaries, multi-paper surveys, formal reviewer reports, citation formatting, full-text translation, or merely adding sources to NotebookLM."
 ---
 
 # Paper Analyzer
@@ -68,25 +68,40 @@ Setting details define what the results mean. Compare results only when the unde
 
 ### 3.3 Method
 
-Explain the method as **overall flow → component mechanisms → component interactions → training/inference behavior**. For each design, retain the link **problem → design choice → mechanism → expected effect** so the explanation says both how it works and why it exists.
+Explain the method at two zoom levels: **end-to-end flow** shows how the whole system runs, while **component close-ups** show why and how every method-defining module or algorithm works. Neither level substitutes for the other.
+
+For every method-defining item, preserve the local chain **bottleneck at this point → design motivation → concrete architecture or procedure → representation/state change → downstream connection → intended effect**. A paper-level motivation is not enough: explain why each component exists where it appears in the pipeline.
 
 - Start with the central idea before components, formulas, or implementation details.
 - Inventory the method-defining modules and stages from the method text, architecture figures, algorithms, and training/inference descriptions before drafting. Include side branches, fusion paths, memories, controllers, and post-processing that affect the output. Explain repeated instances of the same block once, then state where and how often the block is reused.
 - Trace one representative input through the complete method or system, from its original representation to the final output. Name intermediate representations and important shape changes when the paper reports them or they are needed to understand the mechanism.
-- For every method-defining module or stage, explain its input, internal operation, output, connection to the next module, and functional role. State which parts are learned, frozen, rule-based, iterative, or shared when relevant.
 - Do not treat a module name such as “Transformer block,” “adapter,” or “fusion layer” as an explanation. Open the block and describe the operations that materially define its behavior.
 - Include equations, update rules, or pseudocode that define a transformation, routing/attention rule, state update, objective, or inference procedure. Explain the variables, computation order, and operational meaning; omit routine derivations that do not improve understanding.
 - Use architecture and algorithm figures as maps: walk through their blocks and arrows in data-flow order, then connect them to the relevant text and equations.
 - Separate genuine conceptual changes from combinations, scaling, engineering, or presentation choices.
 
-Treat a module or stage as method-defining when it appears in the system pipeline, changes the representation or state, implements a claimed contribution, has its own objective/training stage, or affects inference. Use this comprehension test instead of a word-count target: after reading the Method section, the reader should be able to explain what enters each method-defining module, what transformation occurs, what leaves it, how modules connect, and how training and inference use the system. A simple method may need only a few paragraphs; a multi-stage system may require a longer walkthrough.
+#### Per-Module and Per-Algorithm Explanation Contract
+
+For every method-defining module, stage, or algorithm, answer all applicable questions below. Use a short subsection or component card for a complex method; a compact module table may index the system but must not replace the close-up explanation.
+
+1. **Local motivation:** What specific limitation, ambiguity, information gap, optimization problem, or computational bottleneck exists at this point? Why is this component introduced? If the authors do not state the rationale, say **not explained by the paper**; label any reconstructed rationale as **analysis/inference**.
+2. **Concrete implementation:**
+   - For an architectural module, give the sublayers or operators in execution order, including branches, projections, routing/attention, merge operations, residual paths, normalization/activation, parameter sharing, and important dimensional changes when applicable.
+   - For an algorithm or iterative stage, give initialization, inputs and maintained state, ordered computation/update steps, selection or decision rule, loop/stopping condition, and returned result. Align equations or pseudocode with these steps instead of presenting them separately.
+3. **Interface and transformation:** State the exact input representation/state, what changes internally, the output representation/state, and which later component consumes it. Explain how side branches rejoin the main path.
+4. **Learning and use:** State which parameters or states are learned, frozen, shared, hand-designed, or updated online; which loss or signal trains them; and whether the component behaves differently during training and inference.
+5. **Intended effect and evidence boundary:** Explain what behavior the design is intended to create and what failure it is meant to avoid. Do not claim the component is empirically necessary unless an ablation or other evidence isolates it.
+
+For an unchanged commodity backbone, explain only the internals needed to understand its paper-specific interface and role. For a proposed or modified block, open the implementation to the level reported in the paper and appendix. If source code is inspected, clearly separate code-grounded details from paper-reported details.
+
+Treat a module or stage as method-defining when it appears in the system pipeline, changes the representation or state, implements a claimed contribution, has its own objective/training stage, or affects inference. Use this comprehension test instead of a word-count target: after reading the Method section, the reader should be able to redraw the reported architecture or restate the algorithm flow, explain why each method-defining item exists, walk through its internal operations, connect its output to the next item, and distinguish training from inference. A simple method may need only a few paragraphs; a multi-stage system may require a longer walkthrough.
 
 For learned methods and system papers, build an adaptive **Method and Training Walkthrough** with the applicable fields:
 
 - architecture or system decomposition, including important backbones, modules, frozen/trainable parts, and information flow;
 - model input and output, including modality, representation, tensor shape, prediction target, or control signal when reported and informative;
 - end-to-end data flow: how raw input becomes the final output and where each proposed component acts;
-- module mechanisms: the actual computation, algorithm, message exchange, state transition, or control logic inside each method-defining component, plus its output and downstream consumer;
+- module and algorithm close-ups: local design motivation, concrete internal architecture or ordered procedure, representation/state transition, output and downstream consumer, intended effect, and evidence boundary;
 - objectives and losses: each term's role, weighting, and schedule; explain what behavior it encourages rather than listing symbols only;
 - training stages: pretraining, warm-up, stage-wise optimization, fine-tuning, distillation, or joint training, including what changes between stages;
 - training data: source, scale, split, supervision, filtering, preprocessing, and augmentation;
@@ -187,7 +202,7 @@ Follow these writing constraints:
 - Keep full numeric evidence in the evidence appendix unless a number is essential to the main conclusion or experiment matrix. Method, experiment, and figure/table locators may stay with their rows for easy verification. The evidence appendix is conditional: omit it entirely when all headline evidence already has complete locators elsewhere, and never repeat entries already complete in a matrix or ledger.
 - Use tables for structured comparisons such as the Setting Card or experiment matrix, not for simple prose.
 - Avoid repeating background, section-by-section summaries, and low-value details. Expand only the part the user asks about.
-- For a complex method, use a numbered end-to-end flow and a compact module map when they make interactions easier to follow. For a simple method, cohesive prose is sufficient; do not force a table merely to look complete.
+- For a complex method, use a numbered end-to-end flow, a compact module index, and per-component close-ups in pipeline order. Do not make the reader infer an architecture or algorithm from terse table cells. For a simple method, cohesive prose is sufficient if it still explains each item's motivation and implementation.
 
 When the user asks about only one part, let that part replace the full report. Give only the minimum context needed, analyze the requested part at the necessary depth, and add at most three synthesis/audit bullets. Omit unrequested novelty, research mapping, and evidence appendix; do not repeat evidence that already has locators in the main matrix. For abstract-only input, omit the full Setting Card, Method and Training Walkthrough, experiment matrix, critical audit, and evidence ledger unless the user explicitly asks for them.
 
@@ -196,6 +211,7 @@ Use `references/analysis-template.md` for the full report template and compact e
 ## Source-Grounding Contract
 
 - Attach a locator to every headline number and capability claim: PDF page plus section/table/figure, or exact full-text URL plus heading/figure.
+- Attach a section/figure/equation/algorithm locator to every paper-specific module architecture, algorithm step, and stated design rationale. When several adjacent steps share one source passage, one clearly scoped locator may cover the group.
 - Re-open the original page for headline numbers, denominators, comparison conditions, and experimental settings. Do not rely on generated retrieval alone.
 - Record the paper version/date when versions may differ.
 - Label source-reported facts, external evidence, and your own inference clearly.

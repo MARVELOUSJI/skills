@@ -8,7 +8,7 @@
 
 - **三遍阅读**：快速建图 → 结构化理解 → 证据审计
 - **用户导向主线**：Motivation → Task/Setting → Method → Experiments → Contribution/Novelty
-- **机制完整的方法讲解**：沿端到端数据流说明每个关键模块的输入、内部操作、输出、连接关系和作用
+- **动机与机制完整的方法讲解**：对每个关键模块或算法说明局部设计动机、具体架构或有序流程、数据/状态变化、连接关系和作用
 - **自适应方法与训练卡**：根据论文和阅读目标，覆盖 Loss、训练阶段、数据、优化与推理细节
 - **实验—主张矩阵**：逐项说明每个主要实验想验证什么、如何验证、实际支持到什么程度
 - **逐图逐表账本**：解释正文每张图表；穷举分析或复现模式继续覆盖附录
@@ -36,6 +36,7 @@ npx skills add jiahao-shao1/sjh-skills --skill paper-analyzer
 分析这篇论文：2603.14821
 这篇论文的 motivation、setting 和 method 分别是什么？
 沿数据流逐模块解释这个系统具体是怎么工作的
+每个模块都说清为什么需要、内部架构如何；算法按初始化、更新步骤和停止条件来讲
 逐项解释每个实验想验证什么，结果是否真的支持结论
 这篇论文声称的 novelty 到底成立吗？
 深读 ./papers/example.pdf，并核对关键数字
@@ -46,7 +47,7 @@ npx skills add jiahao-shao1/sjh-skills --skill paper-analyzer
 
 1. **确定深度与来源**：默认标准深读；复现或审稿请求会加强审计。
 2. **第一遍——快速建图**：识别论文类型、研究问题、核心主张和关键图表。
-3. **第二遍——结构化理解**：先分析 Motivation 和 Task/Setting，再沿完整数据流讲清楚方法及每个关键模块，最后分析 Experiments。
+3. **第二遍——结构化理解**：先分析 Motivation 和 Task/Setting，再沿完整数据流讲清方法，并逐个解释关键模块/算法的局部动机与具体实现，最后分析 Experiments。
 4. **第三遍——证据审计**：检查主张是否有直接证据、是否存在替代解释，以及泛化和复现边界。
 5. **贡献与新颖性**：分别报告作者声称、论文内部证据和外部相关工作核验。
 
@@ -54,7 +55,7 @@ npx skills add jiahao-shao1/sjh-skills --skill paper-analyzer
 
 ## 默认输出
 
-开头仍用六句以内说明 Motivation、Task、Method、核心结果、Contribution/Novelty 和主要局限。Method 不设固定篇幅：简单方法保持简洁，复杂系统则展开到读者能够追踪完整数据流，并理解每个关键模块如何工作。Experiments 覆盖每个不同的正文实验、指标含义和逐图逐表账本。
+开头仍用六句以内说明 Motivation、Task、Method、核心结果、Contribution/Novelty 和主要局限。Method 不设固定篇幅：简单方法保持简洁，复杂系统则展开到读者能够追踪完整数据流，说清每个关键组件为什么存在，并能重画其架构或复述算法步骤、连上训练与推理。Experiments 覆盖每个不同的正文实验、指标含义和逐图逐表账本。
 
 ## 读取模式
 

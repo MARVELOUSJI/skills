@@ -44,15 +44,27 @@ Name intermediate representations and important shape changes when reported or n
 
 Before drafting, inventory modules and stages from the method text, architecture figures, algorithms, and training/inference descriptions. Include branches and post-processing that affect the output. A method-defining item is one that changes representation/state, implements a claimed contribution, has separate training, or affects inference. Explain a repeated block once and state where it is reused rather than duplicating identical descriptions.
 
-Then map each important component. Prefer cohesive prose for a simple method and this table for a multi-module system:
+For a multi-module system, first give a compact index. It is a navigation aid, not the explanation itself:
 
-| Module / stage | Input | Internal mechanism | Output / next consumer | Why it exists; learned or fixed |
+| Module / stage | Local bottleneck and motivation | Input → output / connection | Implementation form | Evidence locator |
 |---|---|---|---|---|
-| ... | modality, representation, shape, or state | actual operations, equation/update, routing, or algorithm steps | representation/state and downstream connection | limitation addressed, expected effect, trainable/frozen/shared state |
+| ... | problem at this point; why the item is introduced | representation/state change and next consumer | architecture block / iterative algorithm / rule / objective | p. N, Sec./Fig./Eq./Alg. X |
 
-A component name is not a mechanism description. Explain what happens inside blocks such as attention, fusion, adapter, memory, planner, or decoder when those internals affect the paper's contribution or data flow. Connect architecture-figure blocks and arrows to the text and mechanism-defining equations.
+Then explain every indexed item in pipeline order. For a complex item, use this close-up structure; for a simple item, cover the same fields in cohesive prose:
 
-Retain the design rationale:
+### Component or algorithm: name — one-line purpose
+
+- **Local motivation:** the specific limitation or bottleneck here, why this item is introduced, and whether that rationale is author-stated or analysis/inference.
+- **Architecture or algorithm flow:** for a module, list sublayers/operators, branches, merge points, residual/normalization/activation, sharing, and important dimensions in execution order; for an algorithm, list initialization, maintained state, ordered updates, decision rule, loop/stopping condition, and returned result.
+- **Data/state walkthrough:** exact input → each material transformation or update → exact output. Align equations and pseudocode with the step they implement and explain the variables operationally.
+- **Connections:** upstream producer, downstream consumer, side-path re-entry, and dependencies on other modules or stages.
+- **Learning and use:** learned/frozen/fixed/shared parts, the objective or signal that trains or updates them, and training-versus-inference behavior.
+- **Intended effect and evidence boundary:** what behavior the design should create or failure it should avoid; do not call it necessary or causal without isolating evidence.
+- **Source status:** paper/appendix locator; **not reported** or **unclear** for missing details; code-grounded facts separated from paper-reported facts.
+
+A component name is not a mechanism description. Explain what happens inside blocks such as attention, fusion, adapter, memory, planner, or decoder when those internals affect the paper's contribution or data flow. A table cell saying only “uses attention” or “reduces noise” is incomplete. Connect architecture-figure blocks and arrows to the text and mechanism-defining equations.
+
+Use this cross-component rationale table only when it helps compare several design choices; it does not replace the per-component motivation and implementation walkthrough:
 
 | Problem or limitation | Design choice | Why it should work | Dependency or assumption |
 |---|---|---|---|
@@ -81,10 +93,12 @@ Use equations or pseudocode when they define a transformation, routing rule, sta
 Before moving to Experiments, apply this comprehension check:
 
 1. Can the reader trace a representative input to the final output?
-2. Can the reader say what enters, happens inside, and exits every method-defining module?
-3. Are module interactions and intermediate representations clear?
-4. Are the loss terms and training stages connected to the components they train?
-5. Is the difference between training and inference clear?
+2. Can the reader explain the local problem and motivation for every method-defining module or algorithm?
+3. Can the reader redraw the reported architecture or restate the algorithm as ordered steps without hiding work behind a block name?
+4. Can the reader say what enters, changes internally, and exits every method-defining item?
+5. Are module interactions, side branches, intermediate representations, state updates, and stopping conditions clear?
+6. Are the loss terms and training stages connected to the components they train?
+7. Is the difference between training and inference clear?
 
 The required length is whatever satisfies the applicable questions. Do not lengthen a simple method or compress a complex system to fit a fixed format.
 
