@@ -47,7 +47,7 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
 
-## Current skills (18)
+## Current skills (21)
 
 Includes skills cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) (MIT) and locally authored skills, adapted for MARVELOUSJI's research workflow, CMUX terminal, and proxy-constrained network environment (Clash Verge port 7897).
 
@@ -64,8 +64,11 @@ Includes skills cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/
 | **init-project** | Scaffold shared Claude Code / Codex project context, research structure, and paper-results provenance | none |
 | **mac-app-uninstaller** | Audit and safely remove macOS apps and their leftovers with confirmation | standard macOS tools |
 | **paper-analyzer** | Three-pass, evidence-grounded paper analysis from motivation through experiments and critical audit | none for direct analysis; optional `notebooklm-py` + Playwright Chromium |
+| **paper-source-gate** | Guard browser/PDF paper analysis against source drift by checking the delivery against a recorded paper identity | none; optional Ghostscript for PDF text extraction |
 | **project-review** | Strategic review — 5-dimension snapshot from vision/roadmap/decisions/meetings docs | none |
+| **publication-asset-freeze** | Freeze final visualization outputs with settings, manifests, checksums, QA, and a reproducibility check | none |
 | **remote-cluster-agent** | Remote GPU cluster operations via persistent SSH + Go daemon (rca CLI) | Go 1.21+, mutagen, rca (built from this skill), SSH cluster access |
+| **remote-readonly-audit** | Copy the minimal remote file set and trace the active code path locally for diagrams or fact checks | `rca` from remote-cluster-agent |
 | **scholar-agent** | Scholar Inbox daily digest + filtering + deep-read integration with NotebookLM | `notebooklm-py`, `@playwright/cli` (npm), Scholar Inbox session cookie |
 | **scholar-profile** | Public academic profile lookup plus scholar relationship graph updates | web access, public profile/CV pages |
 | **sync-docs** | Incrementally check whether recent code changes require doc updates, pruning, or rule migration | none |
