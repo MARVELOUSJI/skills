@@ -6,7 +6,7 @@ This file is **auto-loaded** when a Claude Code session opens in this repo, and 
 
 ## What this repo is
 
-The **source of truth** for all personal skills. 17 skills currently, cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained network support through Clash Verge on port 7897).
+The **source of truth** for all personal skills. 18 skills currently, including cherry-picks from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) and locally authored skills, adapted for MARVELOUSJI's workflow (CMUX terminal + proxy-constrained network support through Clash Verge on port 7897).
 
 Companion repo: [MARVELOUSJI/dotfiles](https://github.com/MARVELOUSJI/dotfiles) — environment, tools, activation scripts.
 
@@ -141,6 +141,7 @@ bash skills/<name>/scripts/foo.sh   # run in this repo
 | codex-review | `codex` CLI + OpenAI creds |
 | cmux | `cmux` CLI (bundled with cmux.app) |
 | daily-summary | (optional) Notion integration — currently skipped, auto-degrades gracefully |
+| folder-cleanup | Standard filesystem tools; optional Python 3 standard-library inventory helper; no new packages |
 | Others (handoff / init-project / context-audit / sync-docs / project-review / dotfile-sync / mac-app-uninstaller) | Pure agent instructions, no external deps |
 
 See `~/workspace/dotfiles/scripts/install-skill-deps.sh` for the canonical install flow.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "文件夹清理"
+  short_description: "Review disk usage and approve safe folder cleanup"
+  default_prompt: "使用 $folder-cleanup 扫描当前文件夹，先列表说明磁盘占用、用途及删除对其他文件和功能的影响，列出必要配套修改，等我选择后执行并验证原有功能。"

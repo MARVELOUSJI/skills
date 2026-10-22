@@ -47,9 +47,9 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 
 (The parent `MARVELOUSJI/dotfiles` `bootstrap.sh` does this automatically.)
 
-## Current skills (17)
+## Current skills (18)
 
-**Cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills)** (MIT), adapted for MARVELOUSJI's research workflow, CMUX terminal, and proxy-constrained network environment (Clash Verge port 7897).
+Includes skills cherry-picked from [jiahao-shao1/sjh-skills](https://github.com/jiahao-shao1/sjh-skills) (MIT) and locally authored skills, adapted for MARVELOUSJI's research workflow, CMUX terminal, and proxy-constrained network environment (Clash Verge port 7897).
 
 | Skill | Use-case | Notable external deps |
 |---|---|---|
@@ -59,6 +59,7 @@ git clone https://github.com/MARVELOUSJI/skills.git ~/workspace/skills
 | **daily-summary** | Aggregate Claude sessions + git commits (optionally Notion) into daily timeline report | none (Notion is optional) |
 | **dotfile-sync** | Safely synchronize portable Claude Code, Codex, shell, and personal skill configuration | none (pure agent logic) |
 | **experiment-registry** | Register, track, and compare ML experiments through a structured YAML registry | `exp-registry` CLI (pipx from upstream GitHub package) |
+| **folder-cleanup** | Audit disk usage and deletion impacts, then perform approved cleanup with necessary companion fixes and functional checks | standard filesystem tools; optional Python 3 read-only inventory helper |
 | **handoff** | Structured conversation handoff summary for next session | none |
 | **init-project** | Scaffold shared Claude Code / Codex project context, research structure, and paper-results provenance | none |
 | **mac-app-uninstaller** | Audit and safely remove macOS apps and their leftovers with confirmation | standard macOS tools |

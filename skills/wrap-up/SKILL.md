@@ -11,6 +11,7 @@ description: >
   "这块开发先停下来记录一下"、"写交接文档"（针对当前目录）。
   NOT for: 仅生成会话间的临时摘要贴下次会话用（→ handoff）；
   也不审计已有 context 系统的健康度（→ context-audit）；
+  也不以释放磁盘空间为目标清理文件夹（→ folder-cleanup）；
   也不初始化全新的空白项目（→ init-project）。
 user_invocable: true
 ---
@@ -26,6 +27,7 @@ user_invocable: true
 - 担心几周后回来这块代码完全忘了，想留一份"未来的我能直接续上"的状态。
 
 不要在以下场景用：
+- 只想按磁盘占用、文件用途和删除风险清理文件夹（用 `folder-cleanup`）。
 - 只想生成一份贴到下次会话开头的摘要（用 `handoff`）。
 - 只想检查现有 CLAUDE.md / rules / knowledge 是否健康（用 `context-audit`，read-only）。
 - 全新空目录想初始化 Claude Code / Codex 项目上下文（用 `init-project`）。

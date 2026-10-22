@@ -1,0 +1,11 @@
+[
+  {"query": "用 folder-cleanup 清理当前文件夹，先给我绝对路径、磁盘占用、用途、删除风险和建议的表格", "should_trigger": true},
+  {"query": "磁盘空间不够，帮我看这个目录里哪些大文件可以删", "should_trigger": true},
+  {"query": "内存不够了，这个文件夹里文件占了几十 GB，先列清单让我选", "should_trigger": true},
+  {"query": "Review disk usage of this folder before deleting any files", "should_trigger": true},
+  {"query": "清理这个目录时检查删除对其他代码和文档的影响，相关引用一并修好，确保原功能可运行", "should_trigger": true},
+  {"query": "请帮我卸载这个 Mac 应用并清理所有残留", "should_trigger": false},
+  {"query": "这个 feature 先停一阵，用 wrap-up 整理代码和交接文档", "should_trigger": false},
+  {"query": "Mac RAM 压力很高，找出哪个进程占内存最多", "should_trigger": false},
+  {"query": "帮我清理一下这个函数，改善命名和可读性", "should_trigger": false}
+]
